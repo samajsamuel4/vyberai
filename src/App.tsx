@@ -23,13 +23,16 @@ export default function App() {
   const [chatOpen, setChatOpen] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const chatRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, chatOpen])
+  }, [messages, chatOpen, busy])
 
   useEffect(() => {
-    if (chatOpen) inputRef.current?.focus()
+    if (!chatOpen) return
+    inputRef.current?.focus()
+    chatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [chatOpen])
 
   async function send(text: string) {
@@ -58,22 +61,26 @@ export default function App() {
     void send(input)
   }
 
+  function openChat() {
+    setChatOpen(true)
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
   return (
     <div className="page">
       <div className="atmosphere" aria-hidden="true">
-        <div className="orb orb-a" />
-        <div className="orb orb-b" />
+        <div className="glow glow-a" />
+        <div className="glow glow-b" />
+        <div className="mesh" />
         <div className="grain" />
       </div>
 
       <header className="topbar">
         <a className="brand-mark" href="#top" aria-label="VyberAI domov">
-          <span className="brand-dot" />
+          <span className="brand-mark-icon" aria-hidden="true" />
           VyberAI
         </a>
-        <p className="affiliate-pill" title="Affiliate partner Alza.sk">
-          Affiliate partner Alza.sk
-        </p>
+        <p className="affiliate-note">Affiliate partner Alza.sk</p>
       </header>
 
       <main id="top" className="hero">
@@ -81,20 +88,14 @@ export default function App() {
           <p className="brand-hero">VyberAI</p>
           <h1 className="headline">
             Povedz, čo potrebuješ.
-            <span className="headline-soft"> My nájdeme tip.</span>
+            <span className="headline-soft"> Dostaneš jasný tip.</span>
           </h1>
           <p className="lede">
-            Slovenský chat, ktorý ti odporučí 1–3 produkty a pošle ťa priamo na Alza.sk.
+            Slovenský asistent výberu elektroniky — 1 až 3 odporúčania a priamy
+            odkaz na Alza.sk.
           </p>
           <div className="cta-row">
-            <button
-              type="button"
-              className="cta-primary"
-              onClick={() => {
-                setChatOpen(true)
-                inputRef.current?.focus()
-              }}
-            >
+            <button type="button" className="cta-primary" onClick={openChat}>
               Spustiť chat
             </button>
             <a className="cta-ghost" href="#ako">
@@ -104,69 +105,77 @@ export default function App() {
         </div>
 
         <section
+          ref={chatRef}
           className={`chat-panel ${chatOpen ? 'is-open' : ''}`}
           aria-label="Odporúčací chat"
         >
           <div className="chat-head">
             <div>
               <p className="chat-title">Asistent výberu</p>
-              <p className="chat-sub">Mock katalóg · funguje bez API kľúča</p>
+              <p className="chat-sub">Napíš rozpočet, použitie alebo značku</p>
             </div>
-            <span className="live-dot" aria-hidden="true" />
+            <span className="status-pill" aria-hidden="true">
+              <span className="live-dot" />
+              Online
+            </span>
           </div>
 
           <div className="chat-messages" ref={listRef} role="log" aria-live="polite">
             {messages.map((msg) => (
-              <article
-                key={msg.id}
-                className={`bubble bubble-${msg.role}`}
-              >
+              <article key={msg.id} className={`bubble bubble-${msg.role}`}>
                 <p>{msg.text}</p>
                 {msg.recommendations && msg.recommendations.length > 0 && (
-                  <ul className="rec-list">
-                    {msg.recommendations.map((rec) => (
+                  <ol className="rec-list">
+                    {msg.recommendations.map((rec, index) => (
                       <li key={rec.product.id} className="rec-item">
-                        <div className="rec-meta">
-                          <span className="rec-cat">
-                            {CATEGORY_LABELS[rec.product.category]}
-                          </span>
-                          <strong className="rec-name">{rec.product.name}</strong>
-                          <span className="rec-price">
-                            {formatPrice(rec.product.priceEur)}
-                          </span>
-                          <p className="rec-reason">{rec.reason}</p>
+                        <div className="rec-rank" aria-hidden="true">
+                          {index + 1}
                         </div>
-                        <a
-                          className="rec-cta"
-                          href={rec.affiliateUrl}
-                          target="_blank"
-                          rel="noopener noreferrer sponsored"
-                        >
-                          Pozrieť na Alza.sk
-                          <span className="rec-aff">affiliate</span>
-                        </a>
+                        <div className="rec-body">
+                          <div className="rec-meta">
+                            <span className="rec-cat">
+                              {CATEGORY_LABELS[rec.product.category]}
+                              <span className="rec-brand"> · {rec.product.brand}</span>
+                            </span>
+                            <strong className="rec-name">{rec.product.name}</strong>
+                            <span className="rec-price">
+                              {formatPrice(rec.product.priceEur)}
+                            </span>
+                            <p className="rec-reason">{rec.reason}</p>
+                          </div>
+                          <a
+                            className="rec-cta"
+                            href={rec.affiliateUrl}
+                            target="_blank"
+                            rel="noopener noreferrer sponsored"
+                          >
+                            <span>Pozrieť na Alza.sk</span>
+                            <span className="rec-aff">affiliate</span>
+                          </a>
+                        </div>
                       </li>
                     ))}
-                  </ul>
+                  </ol>
                 )}
-                {msg.sampleNote && (
-                  <p className="sample-note">{msg.sampleNote}</p>
-                )}
+                {msg.sampleNote && <p className="sample-note">{msg.sampleNote}</p>}
               </article>
             ))}
             {busy && (
-              <p className="typing" aria-hidden="true">
-                Hľadám tipy…
+              <p className="typing" aria-label="Hľadám tipy">
+                <span className="typing-dot" />
+                <span className="typing-dot" />
+                <span className="typing-dot" />
               </p>
             )}
           </div>
 
-          <div className="suggestions">
-            {SUGGESTIONS.map((s) => (
+          <div className="suggestions" aria-label="Rýchle tipy">
+            {SUGGESTIONS.map((s, i) => (
               <button
                 key={s}
                 type="button"
                 className="chip"
+                style={{ animationDelay: `${0.05 * i}s` }}
                 disabled={busy}
                 onClick={() => void send(s)}
               >
@@ -201,11 +210,10 @@ export default function App() {
       </main>
 
       <section id="ako" className="how">
-        <h2>Jeden cieľ: rýchly tip, férový odkaz</h2>
+        <h2>Tri kroky k tipu</h2>
         <p>
-          Napíšeš, čo hľadáš. Rule-based matching vyberie z ukážkového katalógu.
-          Klik ide von na Alza.sk cez affiliate odkaz s placeholder ID
-          <code> AFFILIATE_ID</code> — neskôr ho len vymeníš.
+          Napíšeš, čo hľadáš. VyberAI vyberie z katalógu 1–3 produkty s dôvodom.
+          Klik ťa pošle na Alza.sk cez affiliate odkaz — cena pre teba ostáva rovnaká.
         </p>
       </section>
 
@@ -214,7 +222,7 @@ export default function App() {
           VyberAI je affiliate partner Alza.sk. Za nákup cez naše odkazy môžeme
           dostať províziu — cena pre teba ostáva rovnaká.
         </p>
-        <p className="footer-muted">Ukážkové dáta · MVP</p>
+        <p className="footer-muted">Ukážkový katalóg · MVP</p>
       </footer>
     </div>
   )
