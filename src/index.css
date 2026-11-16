@@ -1,0 +1,44 @@
+:root {
+  --font-display: 'Syne', 'Segoe UI', sans-serif;
+  --font-body: 'Figtree', 'Segoe UI', sans-serif;
+  --text: #e8ede6;
+  --muted: #a7b3a8;
+  --accent: #d4f04a;
+  --accent-soft: #b8d86a;
+  color: var(--text);
+  background: #0b1210;
+  font-family: var(--font-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100svh;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+textarea {
+  font: inherit;
+}
