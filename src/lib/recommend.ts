@@ -243,7 +243,7 @@ export function greetingReply(): string {
 
 export function buildAssistantReply(userMessage: string, recs: Recommendation[]): string {
   if (recs.length === 0) {
-    return 'Nenašiel som vhodný produkt v mock katalógu. Skús upresniť kategóriu alebo rozpočet.'
+    return 'Nenašiel som vhodný produkt. Skús upresniť kategóriu alebo rozpočet.'
   }
   const intent = parseIntent(userMessage)
   const budgetBit =
