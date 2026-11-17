@@ -217,7 +217,8 @@ function extractBudgets(raw: string): { maxBudget: number | null; minBudget: num
   let minBudget: number | null = null
 
   const maxPatterns = [
-    /(?:do|max|pod|budget|rozpocet|za)\s*(\d{2,5})\s*(?:€|eur|e)?/,
+    /(?:lacnejsi[ea]?|lacnejsie|cheaper)\s*(?:nez|než|than)?\s*(\d{2,5})\s*(?:€|eur|e)?/,
+    /(?:do|max|pod|budget|rozpocet|za|nez|než)\s*(\d{2,5})\s*(?:€|eur|e)?/,
     /(\d{2,5})\s*(?:€|eur)/,
   ]
   for (const re of maxPatterns) {
@@ -290,6 +291,80 @@ function parseIntent(message: string): ParsedIntent {
 function intentIsActionable(intent: ParsedIntent): boolean {
   // Need an explicit product category — brand/tags alone still clarify
   return intent.categories.length > 0
+}
+
+/**
+ * Merge conversation turns with latest-wins for category + budget.
+ * Earlier turns only fill gaps (so follow-ups like "lacnejšie než 700" keep the category).
+ */
+function resolveIntentFromHistory(
+  userMessage: string,
+  priorUserTexts: string[] = [],
+): ParsedIntent {
+  const turns = [...priorUserTexts, userMessage]
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .map((t) => parseIntent(t))
+
+  const empty: ParsedIntent = {
+    categories: [],
+    maxBudget: null,
+    minBudget: null,
+    tags: [],
+    brands: [],
+    tokens: [],
+    raw: userMessage.trim(),
+  }
+  if (turns.length === 0) return empty
+
+  let categories: ProductCategory[] = []
+  let maxBudget: number | null = null
+  let minBudget: number | null = null
+  let brands: string[] = []
+  const tags: string[] = []
+  const tokens: string[] = []
+
+  for (const turn of turns) {
+    if (turn.categories.length > 0) categories = turn.categories
+    if (turn.maxBudget != null) maxBudget = turn.maxBudget
+    if (turn.minBudget != null) minBudget = turn.minBudget
+    if (turn.brands.length > 0) brands = turn.brands
+    for (const tag of turn.tags) {
+      if (!tags.includes(tag)) tags.push(tag)
+    }
+    for (const token of turn.tokens) {
+      if (!tokens.includes(token)) tokens.push(token)
+    }
+  }
+
+  // Latest turn can drop a conflicting use-case: if it names gaming/fotenie/anc/skola, prefer those
+  const latest = turns[turns.length - 1]
+  const focusTags = ['gaming', 'fotenie', 'anc', 'skola', 'student', 'office', 'budget', 'premium']
+  if (latest.tags.some((t) => focusTags.includes(t))) {
+    const kept = tags.filter((t) => !focusTags.includes(t) || latest.tags.includes(t))
+    for (const t of latest.tags) {
+      if (!kept.includes(t)) kept.push(t)
+    }
+    return {
+      categories,
+      maxBudget,
+      minBudget,
+      tags: kept,
+      brands,
+      tokens,
+      raw: latest.raw,
+    }
+  }
+
+  return {
+    categories,
+    maxBudget,
+    minBudget,
+    tags,
+    brands,
+    tokens,
+    raw: latest.raw,
+  }
 }
 
 function clarifyingReply(intent: ParsedIntent): string {
@@ -507,11 +582,7 @@ export function adviseUser(
   userMessage: string,
   priorUserTexts: string[] = [],
 ): AdviceResult {
-  const combined = [...priorUserTexts, userMessage]
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .join(' \n ')
-  const intent = parseIntent(combined)
+  const intent = resolveIntentFromHistory(userMessage, priorUserTexts)
 
   if (!intentIsActionable(intent)) {
     return {
@@ -608,11 +679,7 @@ export function filterRecommendationsToIntent(
   userMessage: string,
   priorUserTexts: string[] = [],
 ): Recommendation[] {
-  const combined = [...priorUserTexts, userMessage]
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .join(' \n ')
-  const intent = parseIntent(combined)
+  const intent = resolveIntentFromHistory(userMessage, priorUserTexts)
   if (intent.categories.length === 0) return []
   return picks.filter((r) => {
     if (!intent.categories.includes(r.product.category)) return false
