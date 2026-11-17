@@ -66,6 +66,8 @@ export type ChatPanelProps = {
   focusToken?: number
   /** Notify parent when in-flight request state changes */
   onBusyChange?: (busy: boolean) => void
+  /** Hide the panel from the layout until it is opened */
+  hideWhenClosed?: boolean
 }
 
 export function ChatPanel({
@@ -77,6 +79,7 @@ export function ChatPanel({
   initiallyOpen = false,
   focusToken = 0,
   onBusyChange,
+  hideWhenClosed = false,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([createGreeting()])
   const [input, setInput] = useState('')
@@ -232,9 +235,11 @@ export function ChatPanel({
   return (
     <section
       ref={panelRef}
+      id="chat"
       className={`chat-panel ${chatOpen ? 'is-open' : ''} ${className}`.trim()}
       aria-label="Odporúčací chat"
       data-chat-panel
+      hidden={hideWhenClosed && !chatOpen}
     >
       <div className="chat-head">
         <div>

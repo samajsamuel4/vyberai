@@ -48,31 +48,36 @@ export function HomePage() {
 
   return (
     <div className="page">
-      <div className="atmosphere" aria-hidden="true">
-        <div className="glow glow-a" />
-        <div className="glow glow-b" />
-        <div className="mesh" />
+      <div className="atmosphere atmosphere-mock" aria-hidden="true">
         <div className="grain" />
       </div>
 
       <header className="topbar">
-        <Link className="brand-mark" to="/" aria-label="VyberAI domov">
-          <span className="brand-mark-icon" aria-hidden="true" />
-          VyberAI
+        <Link className="brand-mark brand-mark-logo" to="/" aria-label="VyberAI domov">
+          <svg className="brand-v" viewBox="0 0 32 28" aria-hidden="true">
+            <path
+              d="M2 2 L16 26 L30 2 L22.5 2 L16 14.5 L9.5 2 Z"
+              fill="currentColor"
+            />
+          </svg>
         </Link>
-        <p className="affiliate-note">Affiliate partner Alza.sk</p>
+        <nav className="topnav" aria-label="Hlavná navigácia">
+          <a href="#o-nas">O nás</a>
+          <a href="#technologie">Technológie</a>
+          <a href="#bezpecnost">Bezpečnosť</a>
+          <span className="lang-pill" title="Slovenčina">
+            SK
+            <span aria-hidden="true"> ▾</span>
+          </span>
+        </nav>
       </header>
 
-      <main id="top" className="hero">
+      <main id="top" className="hero hero-landing">
         <div className="hero-copy">
           <p className="brand-hero">VyberAI</p>
-          <h1 className="headline">
-            Povedz, čo potrebuješ.
-            <span className="headline-soft"> Dostaneš jasný tip.</span>
-          </h1>
+          <h1 className="headline">Povedz, čo potrebuješ.</h1>
           <p className="lede">
-            Slovenský asistent výberu elektroniky — 1 až 3 tipy podľa reálnych
-            parametrov, porovnanie vedľa seba a odkaz na Alza.sk.
+            Presné odpovede. Z relevantných zdrojov. Na slovensky.
           </p>
           <div className="cta-row">
             <button
@@ -82,26 +87,53 @@ export function HomePage() {
             >
               Spustiť chat
             </button>
-            <a className="cta-ghost" href="#ako">
-              Ako to funguje
-            </a>
           </div>
         </div>
 
-        <ChatPanel
-          shareBasePath="/"
-          autoSend={autoSend}
-          onAutoSendConsumed={() => setAutoSend(null)}
-          focusToken={focusToken}
-        />
+        <div className="hero-visual" aria-hidden="true">
+          <img
+            className="hero-devices"
+            src="/hero-devices.jpg"
+            alt=""
+            width={960}
+            height={540}
+            decoding="async"
+          />
+        </div>
       </main>
 
-      <section id="ako" className="how">
-        <h2>Tri kroky k tipu</h2>
+      <ChatPanel
+        shareBasePath="/"
+        autoSend={autoSend}
+        onAutoSendConsumed={() => setAutoSend(null)}
+        focusToken={focusToken}
+        hideWhenClosed
+        className="chat-panel-block"
+      />
+
+      <section id="o-nas" className="how">
+        <h2>O nás</h2>
         <p>
-          Napíšeš, čo hľadáš. VyberAI vyberie 1–3 produkty podľa parametrov a
-          opisu, ukáže porovnanie a pošle ťa na Alza.sk — cena pre teba ostáva
-          rovnaká. Tip vieš aj zdieľať odkazom kamarátovi.
+          VyberAI je slovenský asistent výberu elektroniky. Napíšeš, čo hľadáš —
+          dostaneš 1–3 tipy podľa parametrov, porovnanie a odkaz na Alza.sk.
+          Cena pre teba ostáva rovnaká. Tip vieš aj zdieľať odkazom kamarátovi.
+        </p>
+      </section>
+
+      <section id="technologie" className="how how-tight">
+        <h2>Technológie</h2>
+        <p>
+          Matching cez katalóg parametrov a špecifikácií; pri dostupnom kľúči
+          aj LLM. Odporúčania sú viazané na ukážkový Alza-štýl feed — nie náhodný
+          výber.
+        </p>
+      </section>
+
+      <section id="bezpecnost" className="how how-tight">
+        <h2>Bezpečnosť</h2>
+        <p>
+          Bez Google Fonts CDN, affiliate ID len na serveri, rate-limit a limit
+          veľkosti požiadavky na chat API. Lokálne pohyby bez PII.
         </p>
       </section>
 
