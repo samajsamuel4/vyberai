@@ -4,6 +4,11 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { handleChatApi, type ChatApiBody } from '../server/chat-api.ts'
+import {
+  BodyTooLargeError,
+  InvalidJsonError,
+  readJsonBodyCapped,
+} from '../server/read-body.ts'
 import { getPublicStatus } from '../server/status.ts'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
@@ -67,16 +72,6 @@ function sendJson(
   res.end(JSON.stringify(body))
 }
 
-async function readJsonBody(req: IncomingMessage): Promise<unknown> {
-  const chunks: Buffer[] = []
-  for await (const chunk of req) {
-    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
-  }
-  const raw = Buffer.concat(chunks).toString('utf8')
-  if (!raw.trim()) return {}
-  return JSON.parse(raw) as unknown
-}
-
 async function resolveFile(requestPath: string) {
   const candidate = safeJoin(root, requestPath)
   if (!candidate) return null
@@ -122,8 +117,16 @@ async function handleApiChat(req: IncomingMessage, res: ServerResponse) {
 
   let body: ChatApiBody
   try {
-    body = (await readJsonBody(req)) as ChatApiBody
-  } catch {
+    body = (await readJsonBodyCapped(req)) as ChatApiBody
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) {
+      sendJson(res, 413, { error: err.message })
+      return
+    }
+    if (err instanceof InvalidJsonError) {
+      sendJson(res, 400, { error: err.message })
+      return
+    }
     sendJson(res, 400, { error: 'Neplatný JSON.' })
     return
   }
