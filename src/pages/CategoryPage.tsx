@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { CATEGORY_LANDINGS, getLandingBySlug } from '../data/landings'
+import { trackPageView } from '../lib/tracking'
 
 export function CategoryPage() {
   const { slug = '' } = useParams()
@@ -11,6 +12,7 @@ export function CategoryPage() {
     document.title = `${landing.title} — VyberAI tipy | Alza.sk`
     const desc = document.querySelector('meta[name="description"]')
     if (desc) desc.setAttribute('content', landing.lede)
+    trackPageView(`/${landing.slug}`)
   }, [landing])
 
   if (!landing) return <Navigate to="/" replace />
@@ -89,6 +91,9 @@ export function CategoryPage() {
         <p>
           VyberAI je affiliate partner Alza.sk. Odporúčania vychádzajú z
           ukážkového katalógu s parametrami a opismi v štýle Alza produktov.
+        </p>
+        <p className="footer-muted">
+          <Link to="/pohyby">Pohyby</Link>
         </p>
       </footer>
     </div>
