@@ -30,17 +30,25 @@ export type OutboundClickEvent = {
   at: string
 }
 
+export type ShareClickEvent = {
+  type: 'share_click'
+  path: string
+  at: string
+}
+
 export type AnalyticsEvent =
   | PageViewEvent
   | ChatStartEvent
   | RecommendationsShownEvent
   | OutboundClickEvent
+  | ShareClickEvent
 
 export type AnalyticsSummary = {
   pageViews: number
   chatStarts: number
   recommendationsShown: number
   outboundClicks: number
+  shareClicks: number
   byPath: Record<string, number>
   recent: AnalyticsEvent[]
 }
@@ -142,6 +150,14 @@ export function trackOutboundClick(input: {
   })
 }
 
+export function trackShareClick(path: string): void {
+  push({
+    type: 'share_click',
+    path: path.split('?')[0] || '/',
+    at: new Date().toISOString(),
+  })
+}
+
 /** Back-compat wrapper used by existing CTA buttons. */
 export function trackAffiliateClick(
   event: Omit<AffiliateClickEvent, 'at'>,
@@ -171,6 +187,7 @@ export function getAnalyticsSummary(): AnalyticsSummary {
   let chatStarts = 0
   let recommendationsShown = 0
   let outboundClicks = 0
+  let shareClicks = 0
 
   for (const e of events) {
     switch (e.type) {
@@ -187,6 +204,9 @@ export function getAnalyticsSummary(): AnalyticsSummary {
       case 'outbound_click':
         outboundClicks += 1
         break
+      case 'share_click':
+        shareClicks += 1
+        break
     }
   }
 
@@ -195,6 +215,7 @@ export function getAnalyticsSummary(): AnalyticsSummary {
     chatStarts,
     recommendationsShown,
     outboundClicks,
+    shareClicks,
     byPath,
     recent: events.slice(-40).reverse(),
   }

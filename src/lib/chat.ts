@@ -12,6 +12,8 @@ export type ChatMessage = {
   role: ChatRole
   text: string
   recommendations?: Recommendation[]
+  /** User query that produced these recommendations (for share links) */
+  shareQuery?: string
   /** Shown when using sample/rule-based engine */
   sampleNote?: string
   mode?: 'llm' | 'fallback'

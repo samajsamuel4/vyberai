@@ -1,44 +1,33 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { CATEGORY_LABELS } from '../data/catalog'
+import { ChatPanel } from '../components/ChatPanel'
 import { CATEGORY_LANDINGS } from '../data/landings'
 import {
-  SUGGESTIONS,
-  createGreeting,
-  respondToUser,
-  type ChatMessage,
-} from '../lib/chat'
-import { ProductCompare } from '../components/ProductCompare'
-import {
-  trackAffiliateClick,
-  trackChatStart,
-  trackPageView,
-  trackRecommendationsShown,
-} from '../lib/tracking'
-
-function formatPrice(eur: number): string {
-  return new Intl.NumberFormat('sk-SK', {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: 0,
-  }).format(eur)
-}
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  applyHomeJsonLd,
+  applyPageMeta,
+  clearFaqJsonLd,
+} from '../lib/seo'
+import { trackPageView } from '../lib/tracking'
 
 export function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [messages, setMessages] = useState<ChatMessage[]>([createGreeting()])
-  const [input, setInput] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [chatOpen, setChatOpen] = useState(false)
   const [affiliateConfigured, setAffiliateConfigured] = useState(false)
-  const listRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  const chatRef = useRef<HTMLElement | null>(null)
-  const bootstrapped = useRef(false)
-  const chatStarted = useRef(false)
+  const [focusToken, setFocusToken] = useState(0)
+  const [autoSend, setAutoSend] = useState<{
+    key: number
+    text: string
+  } | null>(null)
 
   useEffect(() => {
-    document.title = 'VyberAI — AI výber produktov'
+    applyPageMeta({
+      title: DEFAULT_TITLE,
+      description: DEFAULT_DESCRIPTION,
+      path: '/',
+    })
+    applyHomeJsonLd()
+    clearFaqJsonLd()
     trackPageView('/')
     void fetch('/api/status')
       .then((r) => (r.ok ? r.json() : null))
@@ -51,70 +40,11 @@ export function HomePage() {
   }, [])
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, chatOpen, busy])
-
-  useEffect(() => {
-    if (!chatOpen) return
-    inputRef.current?.focus()
-    chatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  }, [chatOpen])
-
-  function markChatStart(source: 'cta' | 'composer' | 'suggestion' | 'landing') {
-    if (chatStarted.current) return
-    chatStarted.current = true
-    trackChatStart(source)
-  }
-
-  async function send(
-    text: string,
-    source: 'composer' | 'suggestion' | 'landing' = 'composer',
-  ) {
-    const trimmed = text.trim()
-    if (!trimmed || busy) return
-
-    markChatStart(source)
-    setChatOpen(true)
-    const userMsg: ChatMessage = {
-      id: `u-${Date.now()}`,
-      role: 'user',
-      text: trimmed,
-    }
-    const prior = messages
-    setMessages((m) => [...m, userMsg])
-    setInput('')
-    setBusy(true)
-    try {
-      const reply = await respondToUser(trimmed, prior)
-      setMessages((m) => [...m, reply])
-      if (reply.recommendations?.length) {
-        trackRecommendationsShown(reply.recommendations.map((r) => r.product.id))
-      }
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  useEffect(() => {
-    if (bootstrapped.current) return
     const q = searchParams.get('q')?.trim()
     if (!q) return
-    bootstrapped.current = true
+    setAutoSend({ key: Date.now(), text: q })
     setSearchParams({}, { replace: true })
-    void send(q, 'landing')
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- bootstrap once from landing deep-link
   }, [searchParams, setSearchParams])
-
-  function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    void send(input, 'composer')
-  }
-
-  function openChat() {
-    markChatStart('cta')
-    setChatOpen(true)
-    requestAnimationFrame(() => inputRef.current?.focus())
-  }
 
   return (
     <div className="page">
@@ -142,7 +72,7 @@ export function HomePage() {
         </nav>
       </header>
 
-      <main id="top" className={`hero hero-landing ${chatOpen ? 'chat-active' : ''}`}>
+      <main id="top" className="hero hero-landing">
         <div className="hero-copy">
           <p className="brand-hero">VyberAI</p>
           <h1 className="headline">Povedz, čo potrebuješ.</h1>
@@ -150,7 +80,11 @@ export function HomePage() {
             Presné odpovede. Z relevantných zdrojov. Na slovensky.
           </p>
           <div className="cta-row">
-            <button type="button" className="cta-primary" onClick={openChat}>
+            <button
+              type="button"
+              className="cta-primary"
+              onClick={() => setFocusToken((n) => n + 1)}
+            >
               Spustiť chat
             </button>
           </div>
@@ -168,137 +102,21 @@ export function HomePage() {
         </div>
       </main>
 
-      <section
-        ref={chatRef}
-        id="chat"
-        className={`chat-panel chat-panel-block ${chatOpen ? 'is-open' : ''}`}
-        aria-label="Odporúčací chat"
-        hidden={!chatOpen}
-      >
-          <div className="chat-head">
-            <div>
-              <p className="chat-title">Asistent výberu</p>
-              <p className="chat-sub">Napíš rozpočet, použitie alebo značku</p>
-            </div>
-            <span className="status-pill" aria-hidden="true">
-              <span className="live-dot" />
-              Online
-            </span>
-          </div>
-
-          <div className="chat-messages" ref={listRef} role="log" aria-live="polite">
-            {messages.map((msg) => (
-              <article key={msg.id} className={`bubble bubble-${msg.role}`}>
-                <p>{msg.text}</p>
-                {msg.recommendations && msg.recommendations.length > 0 && (
-                  <>
-                    <ol className="rec-list">
-                      {msg.recommendations.map((rec, index) => (
-                        <li key={rec.product.id} className="rec-item">
-                          <div className="rec-rank" aria-hidden="true">
-                            {index + 1}
-                          </div>
-                          <div className="rec-body">
-                            <div className="rec-meta">
-                              <span className="rec-cat">
-                                {CATEGORY_LABELS[rec.product.category]}
-                                <span className="rec-brand"> · {rec.product.brand}</span>
-                              </span>
-                              <strong className="rec-name">{rec.product.name}</strong>
-                              <span className="rec-price">
-                                {formatPrice(rec.product.priceEur)}
-                              </span>
-                              <p className="rec-reason">{rec.reason}</p>
-                              <p className="rec-desc">{rec.product.description}</p>
-                              <ul className="rec-specs">
-                                {rec.product.specs.slice(0, 4).map((s) => (
-                                  <li key={s}>{s}</li>
-                                ))}
-                              </ul>
-                            </div>
-                            <a
-                              className="rec-cta"
-                              href={rec.affiliateUrl}
-                              target="_blank"
-                              rel="noopener noreferrer sponsored"
-                              onClick={() =>
-                                trackAffiliateClick({
-                                  productId: rec.product.id,
-                                  productName: rec.product.name,
-                                  category: rec.product.category,
-                                  priceEur: rec.product.priceEur,
-                                  affiliateUrl: rec.affiliateUrl,
-                                  rank: index + 1,
-                                })
-                              }
-                            >
-                              <span>Pozrieť na Alza.sk</span>
-                              <span className="rec-aff">affiliate</span>
-                            </a>
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                    <ProductCompare recommendations={msg.recommendations} />
-                  </>
-                )}
-                {msg.sampleNote && <p className="sample-note">{msg.sampleNote}</p>}
-              </article>
-            ))}
-            {busy && (
-              <p className="typing" aria-label="Hľadám tipy">
-                <span className="typing-dot" />
-                <span className="typing-dot" />
-                <span className="typing-dot" />
-              </p>
-            )}
-          </div>
-
-          <div className="suggestions" aria-label="Rýchle tipy">
-            {SUGGESTIONS.map((s, i) => (
-              <button
-                key={s}
-                type="button"
-                className="chip"
-                style={{ animationDelay: `${0.05 * i}s` }}
-                disabled={busy}
-                onClick={() => void send(s, 'suggestion')}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-
-          <form className="composer" onSubmit={onSubmit}>
-            <label className="sr-only" htmlFor="chat-input">
-              Tvoja požiadavka
-            </label>
-            <textarea
-              id="chat-input"
-              ref={inputRef}
-              rows={2}
-              value={input}
-              placeholder="Napr. notebook do 800 € na školu…"
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
-                  void send(input)
-                }
-              }}
-            />
-            <button type="submit" className="send" disabled={busy || !input.trim()}>
-              Poslať
-            </button>
-          </form>
-      </section>
+      <ChatPanel
+        shareBasePath="/"
+        autoSend={autoSend}
+        onAutoSendConsumed={() => setAutoSend(null)}
+        focusToken={focusToken}
+        hideWhenClosed
+        className="chat-panel-block"
+      />
 
       <section id="o-nas" className="how">
         <h2>O nás</h2>
         <p>
           VyberAI je slovenský asistent výberu elektroniky. Napíšeš, čo hľadáš —
           dostaneš 1–3 tipy podľa parametrov, porovnanie a odkaz na Alza.sk.
-          Cena pre teba ostáva rovnaká.
+          Cena pre teba ostáva rovnaká. Tip vieš aj zdieľať odkazom kamarátovi.
         </p>
       </section>
 
@@ -322,7 +140,8 @@ export function HomePage() {
       <section className="categories" aria-label="Kategórie">
         <h2>Kategórie</h2>
         <p className="categories-lede">
-          SEO landingy s predvyplneným chatom — klikni a hneď dostaneš tipy.
+          Landing stránky s chatom priamo v kategórii — klikni a hneď dostaneš
+          tipy.
         </p>
         <ul className="category-grid">
           {CATEGORY_LANDINGS.map((l) => (
