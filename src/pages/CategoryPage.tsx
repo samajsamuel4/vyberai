@@ -14,16 +14,34 @@ function formatPrice(eur: number): string {
   }).format(eur)
 }
 
+type ChatUi = {
+  slug: string
+  focusToken: number
+  autoSend: { key: number; text: string } | null
+  busy: boolean
+}
+
 export function CategoryPage() {
   const { slug = '' } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const landing = getLandingBySlug(slug)
-  const [focusToken, setFocusToken] = useState(0)
-  const [chatBusy, setChatBusy] = useState(false)
-  const [autoSend, setAutoSend] = useState<{
-    key: number
-    text: string
-  } | null>(null)
+  const [chatUi, setChatUi] = useState<ChatUi>({
+    slug,
+    focusToken: 0,
+    autoSend: null,
+    busy: false,
+  })
+
+  // Reset chat session during render so remounted ChatPanel never sees
+  // leftover focusToken/autoSend from the previous category.
+  if (landing && chatUi.slug !== landing.slug) {
+    setChatUi({
+      slug: landing.slug,
+      focusToken: 0,
+      autoSend: null,
+      busy: false,
+    })
+  }
 
   const samples = useMemo(() => {
     if (!landing) return []
@@ -35,9 +53,6 @@ export function CategoryPage() {
 
   useEffect(() => {
     if (!landing) return
-    setAutoSend(null)
-    setFocusToken(0)
-    setChatBusy(false)
     const path = `/${landing.slug}`
     applyPageMeta({
       title: `${landing.title} — VyberAI tipy | Alza.sk`,
@@ -53,16 +68,23 @@ export function CategoryPage() {
     if (!landing) return
     const q = searchParams.get('q')?.trim()
     if (!q) return
-    setAutoSend({ key: Date.now(), text: q })
+    setChatUi((prev) => ({
+      ...prev,
+      slug: landing.slug,
+      autoSend: { key: Date.now(), text: q },
+    }))
     setSearchParams({}, { replace: true })
   }, [landing, searchParams, setSearchParams])
 
   if (!landing) return <Navigate to="/" replace />
 
   function startWithPrompt(prompt: string) {
-    if (chatBusy) return
-    setAutoSend({ key: Date.now(), text: prompt })
-    setFocusToken((n) => n + 1)
+    if (chatUi.busy) return
+    setChatUi((prev) => ({
+      ...prev,
+      autoSend: { key: Date.now(), text: prompt },
+      focusToken: prev.focusToken + 1,
+    }))
   }
 
   return (
@@ -92,7 +114,7 @@ export function CategoryPage() {
           <button
             type="button"
             className="cta-primary"
-            disabled={chatBusy}
+            disabled={chatUi.busy}
             onClick={() => startWithPrompt(landing.chatPrompt)}
           >
             Spýtať sa VyberAI
@@ -140,7 +162,7 @@ export function CategoryPage() {
                   <button
                     type="button"
                     className="sample-ask"
-                    disabled={chatBusy}
+                    disabled={chatUi.busy}
                     onClick={() =>
                       startWithPrompt(
                         `${p.name} alebo podobné do ${p.priceEur + 50} €`,
@@ -163,7 +185,7 @@ export function CategoryPage() {
                 key={s}
                 type="button"
                 className="chip"
-                disabled={chatBusy}
+                disabled={chatUi.busy}
                 onClick={() => startWithPrompt(s)}
               >
                 {s}
@@ -177,11 +199,21 @@ export function CategoryPage() {
           className="landing-chat"
           suggestions={landing.suggestions}
           shareBasePath={`/${landing.slug}`}
-          autoSend={autoSend}
-          onAutoSendConsumed={() => setAutoSend(null)}
-          focusToken={focusToken}
-          initiallyOpen={Boolean(autoSend)}
-          onBusyChange={setChatBusy}
+          autoSend={chatUi.autoSend}
+          onAutoSendConsumed={() =>
+            setChatUi((prev) =>
+              prev.slug === landing.slug
+                ? { ...prev, autoSend: null }
+                : prev,
+            )
+          }
+          focusToken={chatUi.focusToken}
+          initiallyOpen={Boolean(chatUi.autoSend)}
+          onBusyChange={(busy) =>
+            setChatUi((prev) =>
+              prev.slug === landing.slug ? { ...prev, busy } : prev,
+            )
+          }
         />
 
         <section className="landing-faq" aria-labelledby="faq-title">

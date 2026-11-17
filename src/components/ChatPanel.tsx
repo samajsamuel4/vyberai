@@ -89,6 +89,15 @@ export function ChatPanel({
   const chatStarted = useRef(false)
   const lastAutoKey = useRef(0)
   const busyRef = useRef(false)
+  const mountedRef = useRef(true)
+  const lastFocusToken = useRef(0)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   useEffect(() => {
     listRef.current?.scrollTo({
@@ -104,7 +113,8 @@ export function ChatPanel({
   }, [chatOpen])
 
   useEffect(() => {
-    if (!focusToken) return
+    if (!focusToken || focusToken === lastFocusToken.current) return
+    lastFocusToken.current = focusToken
     markChatStart('cta')
     setChatOpen(true)
     requestAnimationFrame(() => inputRef.current?.focus())
@@ -121,6 +131,7 @@ export function ChatPanel({
 
   function setBusyState(next: boolean) {
     busyRef.current = next
+    if (!mountedRef.current) return
     setBusy(next)
     onBusyChange?.(next)
   }
@@ -146,6 +157,7 @@ export function ChatPanel({
     setBusyState(true)
     try {
       const reply = await respondToUser(trimmed, prior)
+      if (!mountedRef.current) return false
       const withShare: ChatMessage =
         reply.recommendations && reply.recommendations.length > 0
           ? { ...reply, shareQuery: trimmed }
