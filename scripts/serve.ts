@@ -52,10 +52,16 @@ function send(
   res.end(body)
 }
 
-function sendJson(res: ServerResponse, status: number, body: unknown) {
+function sendJson(
+  res: ServerResponse,
+  status: number,
+  body: unknown,
+  extraHeaders?: Record<string, string>,
+) {
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'private, no-store',
+    ...extraHeaders,
   })
   res.end(JSON.stringify(body))
 }
@@ -115,7 +121,7 @@ async function handleApiChat(req: IncomingMessage, res: ServerResponse) {
 
   const result = await handleChatApi(req, body)
   if ('error' in result) {
-    sendJson(res, result.status, { error: result.error })
+    sendJson(res, result.status, { error: result.error }, result.headers)
     return
   }
   sendJson(res, 200, result)
