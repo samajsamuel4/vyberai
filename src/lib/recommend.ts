@@ -1,4 +1,9 @@
-import { CATALOG, type Product, type ProductCategory } from '../data/catalog'
+import {
+  CATALOG,
+  CATEGORY_LABELS,
+  type Product,
+  type ProductCategory,
+} from '../data/catalog'
 import { buildAffiliateUrl } from './affiliate'
 
 export type Recommendation = {
@@ -11,26 +16,49 @@ export type Recommendation = {
 type ParsedIntent = {
   categories: ProductCategory[]
   maxBudget: number | null
+  minBudget: number | null
   tags: string[]
   brands: string[]
+  tokens: string[]
 }
 
 const CATEGORY_KEYWORDS: { category: ProductCategory; words: string[] }[] = [
   {
     category: 'notebook',
-    words: ['notebook', 'laptop', 'notebooky', 'laptopy', 'pc na skol', 'počítač', 'pocitac'],
+    words: [
+      'notebook',
+      'laptop',
+      'notebooky',
+      'laptopy',
+      'pc na skol',
+      'počítač',
+      'pocitac',
+      'ultrabook',
+      'chromebook',
+    ],
   },
   {
     category: 'telefon',
-    words: ['telefon', 'telefón', 'mobil', 'smartphone', 'iphone', 'android'],
+    words: ['telefon', 'telefón', 'mobil', 'smartphone', 'iphone', 'android', 'galaxy'],
   },
   {
     category: 'sluchadla',
-    words: ['sluchadla', 'slúchadlá', 'headphones', 'airpods', 'anc', 'hudba'],
+    words: [
+      'sluchadla',
+      'slúchadlá',
+      'headphones',
+      'airpods',
+      'anc',
+      'hudba',
+      'hudbu',
+      'hudby',
+      'earbud',
+      'sluchatka',
+    ],
   },
   {
     category: 'monitor',
-    words: ['monitor', 'displej', 'obrazovka'],
+    words: ['monitor', 'displej', 'obrazovka', 'ultrawide'],
   },
   {
     category: 'tablet',
@@ -38,39 +66,53 @@ const CATEGORY_KEYWORDS: { category: ProductCategory; words: string[] }[] = [
   },
   {
     category: 'klavesnica',
-    words: ['klavesnica', 'klávesnica', 'keyboard'],
+    words: ['klavesnica', 'klávesnica', 'keyboard', 'mechanicka', 'mechanická'],
   },
   {
     category: 'mys',
-    words: ['mys', 'myš', 'mouse'],
+    words: ['mys', 'myš', 'mouse', 'trackball'],
   },
   {
     category: 'ssd',
-    words: ['ssd', 'disk', 'úložisko', 'ulozisko', 'nvme'],
+    words: ['ssd', 'disk', 'úložisko', 'ulozisko', 'nvme', 'externy disk', 'externý disk'],
   },
   {
     category: 'tv',
-    words: ['tv', 'televizor', 'televízor', 'oled', 'qled'],
+    words: ['tv', 'televizor', 'televízor', 'oled', 'qled', 'televizia', 'televízia'],
   },
   {
     category: 'herna-konzola',
-    words: ['konzola', 'playstation', 'ps5', 'switch', 'nintendo', 'xbox'],
+    words: ['konzola', 'playstation', 'ps5', 'ps4', 'switch', 'nintendo', 'xbox'],
   },
 ]
 
 const TAG_KEYWORDS: { tag: string; words: string[] }[] = [
-  { tag: 'skola', words: ['skola', 'škola', 'skolu', 'školu', 'štúdium', 'studium', 'prednášk', 'prednask'] },
+  {
+    tag: 'skola',
+    words: ['skola', 'škola', 'skolu', 'školu', 'štúdium', 'studium', 'prednášk', 'prednask'],
+  },
   { tag: 'student', words: ['student', 'študent', 'studentka', 'študentka'] },
-  { tag: 'office', words: ['praca', 'práca', 'kancel', 'office', 'home office', 'home-office'] },
-  { tag: 'gaming', words: ['gaming', 'herny', 'herný', 'hry', 'hrať', 'hrat'] },
-  { tag: 'fotenie', words: ['foto', 'foťák', 'fotak', 'kamera', 'fotenie'] },
-  { tag: 'anc', words: ['anc', 'hluk', 'potlačen', 'potlacen', 'cestovan'] },
-  { tag: 'budget', words: ['lacny', 'lacný', 'lacne', 'lacné', 'lacno', 'lacnú', 'najlacnej'] },
-  { tag: 'premium', words: ['premium', 'prémium', 'najlepsi', 'najlepší', 'top', 'kvalitn'] },
-  { tag: 'baterie', words: ['bater', 'výdrž', 'vydrz', 'batéri'] },
-  { tag: 'lehky', words: ['lahky', 'ľahký', 'tenky', 'tenký', 'prenosn'] },
-  { tag: 'apple', words: ['apple', 'mac', 'iphone', 'ipad', 'airpods'] },
+  {
+    tag: 'office',
+    words: ['praca', 'práca', 'kancel', 'office', 'home office', 'home-office', 'produkiv'],
+  },
+  { tag: 'gaming', words: ['gaming', 'herny', 'herný', 'hry', 'hrať', 'hrat', 'esport'] },
+  { tag: 'fotenie', words: ['foto', 'foťák', 'fotak', 'kamera', 'fotenie', 'leica'] },
+  { tag: 'anc', words: ['anc', 'hluk', 'potlačen', 'potlacen', 'cestovan', 'noise'] },
+  {
+    tag: 'budget',
+    words: ['lacny', 'lacný', 'lacne', 'lacné', 'lacno', 'lacnú', 'najlacnej', 'rozumn'],
+  },
+  {
+    tag: 'premium',
+    words: ['premium', 'prémium', 'najlepsi', 'najlepší', 'top', 'kvalitn', 'flagship'],
+  },
+  { tag: 'baterie', words: ['bater', 'výdrž', 'vydrz', 'batéri', 'vydrzat'] },
+  { tag: 'lehky', words: ['lahky', 'ľahký', 'tenky', 'tenký', 'prenosn', 'kompakt'] },
+  { tag: 'apple', words: ['apple', 'mac', 'iphone', 'ipad', 'airpods', 'macos', 'ios'] },
   { tag: 'android', words: ['android', 'samsung', 'xiaomi', 'pixel'] },
+  { tag: 'sport', words: ['sport', 'beh', 'posil', 'fitness', 'tren'] },
+  { tag: 'cestovanie', words: ['cestov', 'vlak', 'lietadl', 'commute'] },
 ]
 
 const BRAND_WORDS = [
@@ -88,6 +130,11 @@ const BRAND_WORDS = [
   'google',
   'jbl',
   'nintendo',
+  'microsoft',
+  'huawei',
+  'nothing',
+  'keychron',
+  'sandisk',
 ]
 
 function normalize(text: string): string {
@@ -97,21 +144,40 @@ function normalize(text: string): string {
     .replace(/\p{M}/gu, '')
 }
 
-function extractBudget(raw: string): number | null {
+function extractBudgets(raw: string): { maxBudget: number | null; minBudget: number | null } {
   const n = normalize(raw)
-  // "do 800", "max 500 €", "pod 1000 eur", "budget 600"
-  const patterns = [
-    /(?:do|max|pod|budget|rozpocet|rozpočet|za)\s*(\d{2,5})\s*(?:€|eur|e)?/,
+  let maxBudget: number | null = null
+  let minBudget: number | null = null
+
+  const maxPatterns = [
+    /(?:do|max|pod|budget|rozpocet|za)\s*(\d{2,5})\s*(?:€|eur|e)?/,
     /(\d{2,5})\s*(?:€|eur)/,
   ]
-  for (const re of patterns) {
+  for (const re of maxPatterns) {
     const m = n.match(re)
     if (m) {
       const value = Number(m[1])
-      if (value >= 20 && value <= 10000) return value
+      if (value >= 20 && value <= 10000) {
+        maxBudget = value
+        break
+      }
     }
   }
-  return null
+
+  const minMatch = n.match(/(?:od|min|aspon|aspoň)\s*(\d{2,5})\s*(?:€|eur|e)?/)
+  if (minMatch) {
+    const value = Number(minMatch[1])
+    if (value >= 20 && value <= 10000) minBudget = value
+  }
+
+  return { maxBudget, minBudget }
+}
+
+function tokenize(n: string): string[] {
+  return n
+    .split(/[^a-z0-9]+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3)
 }
 
 function parseIntent(message: string): ParsedIntent {
@@ -131,12 +197,15 @@ function parseIntent(message: string): ParsedIntent {
   }
 
   const brands = BRAND_WORDS.filter((b) => n.includes(b))
+  const { maxBudget, minBudget } = extractBudgets(message)
 
   return {
     categories,
-    maxBudget: extractBudget(message),
+    maxBudget,
+    minBudget,
     tags,
     brands,
+    tokens: tokenize(n),
   }
 }
 
@@ -144,6 +213,9 @@ function reasonFor(product: Product, intent: ParsedIntent): string {
   const parts: string[] = []
   if (intent.maxBudget != null && product.priceEur <= intent.maxBudget) {
     parts.push(`zmestí sa do rozpočtu ${intent.maxBudget} €`)
+  }
+  if (intent.minBudget != null && product.priceEur >= intent.minBudget) {
+    parts.push(`od ${intent.minBudget} € podľa zadania`)
   }
   if (intent.tags.includes('skola') || intent.tags.includes('student')) {
     parts.push('hodí sa na školu a bežnú prácu')
@@ -157,8 +229,11 @@ function reasonFor(product: Product, intent: ParsedIntent): string {
   if (intent.tags.includes('anc') && product.tags.includes('anc')) {
     parts.push('výborné potlačenie hluku')
   }
+  if (intent.tags.includes('lehky') && product.tags.includes('lehky')) {
+    parts.push('ľahký na nosenie')
+  }
   if (intent.brands.some((b) => product.brand.toLowerCase() === b)) {
-    parts.push(`presne značka ${product.brand}, ktorú hľadáte`)
+    parts.push(`presne značka ${product.brand}, ktorú hľadáš`)
   }
   if (parts.length === 0) {
     parts.push(product.summary)
@@ -168,41 +243,81 @@ function reasonFor(product: Product, intent: ParsedIntent): string {
   return parts.join(' — ')
 }
 
+function textOverlapScore(product: Product, tokens: string[]): number {
+  if (tokens.length === 0) return 0
+  const hay = normalize(`${product.name} ${product.brand} ${product.summary} ${product.tags.join(' ')}`)
+  let hits = 0
+  for (const token of tokens) {
+    if (hay.includes(token)) hits += 1
+  }
+  return hits * 4
+}
+
 function scoreProduct(product: Product, intent: ParsedIntent): number {
   let score = 0
 
   if (intent.categories.length > 0) {
-    if (intent.categories.includes(product.category)) score += 40
-    else score -= 20
+    if (intent.categories.includes(product.category)) score += 45
+    else return -100
   }
 
   if (intent.maxBudget != null) {
     if (product.priceEur <= intent.maxBudget) {
       score += 25
-      // Prefer closer to budget (better value perception)
       const ratio = product.priceEur / intent.maxBudget
       score += Math.round(ratio * 10)
-    } else if (product.priceEur <= intent.maxBudget * 1.1) {
-      score += 5 // slightly over
+    } else if (product.priceEur <= intent.maxBudget * 1.08) {
+      score += 2
     } else {
-      score -= 30
+      // Far over budget — drop from results
+      return -100
     }
   }
 
+  if (intent.minBudget != null) {
+    if (product.priceEur >= intent.minBudget) score += 10
+    else score -= 20
+  }
+
   for (const tag of intent.tags) {
-    if (product.tags.includes(tag)) score += 12
+    if (product.tags.includes(tag)) score += 14
   }
 
   for (const brand of intent.brands) {
-    if (product.brand.toLowerCase() === brand) score += 20
+    if (product.brand.toLowerCase() === brand) score += 22
   }
 
-  // Mild popularity bias for well-rounded picks when query is vague
-  if (intent.categories.length === 0 && intent.tags.length === 0) {
-    score += product.tags.includes('student') || product.tags.includes('office') ? 5 : 0
+  score += textOverlapScore(product, intent.tokens)
+
+  if (
+    intent.categories.length === 0 &&
+    intent.tags.length === 0 &&
+    intent.brands.length === 0
+  ) {
+    score += product.tags.includes('student') || product.tags.includes('office') ? 6 : 0
   }
 
   return score
+}
+
+function diversify(picks: Recommendation[], limit: number): Recommendation[] {
+  const out: Recommendation[] = []
+  const brands = new Set<string>()
+
+  for (const pick of picks) {
+    if (out.length >= limit) break
+    const brand = pick.product.brand.toLowerCase()
+    if (brands.has(brand)) continue
+    out.push(pick)
+    brands.add(brand)
+  }
+
+  for (const pick of picks) {
+    if (out.length >= limit) break
+    if (!out.some((p) => p.product.id === pick.product.id)) out.push(pick)
+  }
+
+  return out
 }
 
 /**
@@ -218,13 +333,14 @@ export function recommendProducts(userMessage: string, limit = 3): Recommendatio
     affiliateUrl: buildAffiliateUrl(product.alzaPath),
   }))
     .filter((r) => r.score > 0)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.score - a.score || a.product.priceEur - b.product.priceEur)
 
-  let picks = scored.slice(0, limit)
+  let picks = diversify(scored, limit)
 
-  // Fallback: if nothing matched well, suggest popular mid-range items
   if (picks.length === 0) {
-    picks = CATALOG.filter((p) => p.priceEur >= 100 && p.priceEur <= 800)
+    picks = CATALOG.filter((p) => p.priceEur >= 80 && p.priceEur <= 900)
+      .slice()
+      .sort((a, b) => a.priceEur - b.priceEur)
       .slice(0, limit)
       .map((product) => ({
         product,
@@ -250,8 +366,8 @@ export function buildAssistantReply(userMessage: string, recs: Recommendation[])
     intent.maxBudget != null ? ` do ${intent.maxBudget} €` : ''
   const catBit =
     intent.categories.length > 0
-      ? ` v kategórii ${intent.categories.map((c) => c).join(', ')}`
+      ? ` (${intent.categories.map((c) => CATEGORY_LABELS[c]).join(', ')})`
       : ''
 
-  return `Tu sú ${recs.length === 1 ? 'môj tip' : `moje tipy (${recs.length})`}${catBit}${budgetBit}. Každý odkaz vedie na Alza.sk (affiliate partner).`
+  return `Tu ${recs.length === 1 ? 'je môj tip' : `sú moje tipy (${recs.length})`}${catBit}${budgetBit}. Každý odkaz vedie na Alza.sk (affiliate partner).`
 }

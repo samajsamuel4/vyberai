@@ -42,4 +42,5 @@ export const SUGGESTIONS = [
   'Slúchadlá s ANC do 150 €',
   'Telefón s dobrým foťákom',
   'Monitor na home office',
+  'Tablet na poznámky do 450 €',
 ]

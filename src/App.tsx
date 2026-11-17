@@ -6,6 +6,8 @@ import {
   respondToUser,
   type ChatMessage,
 } from './lib/chat'
+import { isAffiliateConfigured } from './lib/affiliate'
+import { trackAffiliateClick } from './lib/tracking'
 import './App.css'
 
 function formatPrice(eur: number): string {
@@ -148,6 +150,16 @@ export default function App() {
                             href={rec.affiliateUrl}
                             target="_blank"
                             rel="noopener noreferrer sponsored"
+                            onClick={() =>
+                              trackAffiliateClick({
+                                productId: rec.product.id,
+                                productName: rec.product.name,
+                                category: rec.product.category,
+                                priceEur: rec.product.priceEur,
+                                affiliateUrl: rec.affiliateUrl,
+                                rank: index + 1,
+                              })
+                            }
                           >
                             <span>Pozrieť na Alza.sk</span>
                             <span className="rec-aff">affiliate</span>
@@ -222,7 +234,10 @@ export default function App() {
           VyberAI je affiliate partner Alza.sk. Za nákup cez naše odkazy môžeme
           dostať províziu — cena pre teba ostáva rovnaká.
         </p>
-        <p className="footer-muted">Ukážkový katalóg · MVP</p>
+        <p className="footer-muted">
+          Ukážkový katalóg · MVP
+          {!isAffiliateConfigured() ? ' · affiliate ID ešte nie je nastavené' : ''}
+        </p>
       </footer>
     </div>
   )
