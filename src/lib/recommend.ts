@@ -393,6 +393,30 @@ function resolveIntentFromHistory(
     }
   }
 
+  // budget vs premium are mutually exclusive — latest price tier wins
+  const PRICE_TIERS = ['budget', 'premium'] as const
+  const latestTier = latest.tags.filter((t) =>
+    (PRICE_TIERS as readonly string[]).includes(t),
+  )
+  if (latestTier.length > 0) {
+    tags = tags.filter((t) => !(PRICE_TIERS as readonly string[]).includes(t))
+    for (const t of latestTier) {
+      if (!tags.includes(t)) tags.push(t)
+    }
+  } else if (tags.includes('budget') && tags.includes('premium')) {
+    // Keep only the most recent of the two from history
+    for (let i = turns.length - 1; i >= 0; i -= 1) {
+      const tier = turns[i].tags.find((t) =>
+        (PRICE_TIERS as readonly string[]).includes(t),
+      )
+      if (tier) {
+        tags = tags.filter((t) => !(PRICE_TIERS as readonly string[]).includes(t))
+        tags.push(tier)
+        break
+      }
+    }
+  }
+
   return {
     categories,
     maxBudget,
