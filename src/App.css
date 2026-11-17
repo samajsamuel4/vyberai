@@ -279,6 +279,10 @@
   animation: bubble-in 0.35s ease both;
 }
 
+.bubble:has(.compare) {
+  max-width: min(100%, 42rem);
+}
+
 .bubble p {
   margin: 0;
   line-height: 1.45;
@@ -406,6 +410,129 @@
   margin-top: 0.7rem !important;
   font-size: 0.74rem !important;
   color: var(--muted);
+}
+
+.compare {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(232, 237, 230, 0.12);
+  animation: bubble-in 0.4s 0.05s ease both;
+}
+
+.compare-head {
+  margin-bottom: 0.65rem;
+}
+
+.compare-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+.compare-sub {
+  margin: 0.15rem 0 0 !important;
+  font-size: 0.75rem !important;
+  color: var(--muted);
+}
+
+.compare-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  margin: 0 -0.15rem;
+  padding: 0 0.15rem 0.15rem;
+  scrollbar-width: thin;
+}
+
+.compare-table {
+  width: 100%;
+  min-width: 28rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.82rem;
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 0.55rem 0.5rem;
+  vertical-align: top;
+  border-bottom: 1px solid rgba(232, 237, 230, 0.08);
+  text-align: left;
+}
+
+.compare-label,
+.compare-table tbody th {
+  width: 5.5rem;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.compare-col {
+  font-weight: 600;
+}
+
+.compare-rank {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--accent-soft);
+  letter-spacing: 0.04em;
+  margin-bottom: 0.15rem;
+}
+
+.compare-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.compare-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.compare-price.is-best {
+  color: var(--accent);
+}
+
+.compare-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-soft);
+}
+
+.compare-why {
+  color: var(--muted);
+  line-height: 1.4;
+  font-size: 0.78rem;
+}
+
+.compare-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.65rem;
+  border-radius: 0.55rem;
+  background: rgba(212, 240, 74, 0.92);
+  color: #10150f;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.78rem;
+  transition: filter 0.15s ease;
+}
+
+.compare-cta:hover {
+  filter: brightness(1.05);
 }
 
 .typing {
