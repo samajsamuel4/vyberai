@@ -1,5 +1,5 @@
 import { getProductFeed, type Product } from '../src/data/catalog'
-import { buildAffiliateUrl } from '../src/lib/affiliate'
+import { buildAffiliateUrl } from './affiliate'
 import {
   buildAssistantReply,
   recommendProducts,

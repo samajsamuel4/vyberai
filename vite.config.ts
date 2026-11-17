@@ -2,10 +2,21 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 import { handleChatApi, type ChatApiBody } from './server/chat-api'
+import { getPublicStatus } from './server/status'
 
-// Inject AFFILIATE_ID at build time (Cursor app secret / CI env).
-// Never prefix with VITE_ — that is reserved by Cursor Apps hosting.
-const affiliateId = process.env.AFFILIATE_ID?.trim() || 'AFFILIATE_ID'
+function sendJson(
+  res: ServerResponse,
+  status: number,
+  body: unknown,
+  extraHeaders?: Record<string, string>,
+) {
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'private, no-store',
+    ...extraHeaders,
+  })
+  res.end(JSON.stringify(body))
+}
 
 function chatApiPlugin(): Plugin {
   return {
@@ -13,13 +24,18 @@ function chatApiPlugin(): Plugin {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const url = req.url?.split('?')[0] || ''
+        const nodeReq = req as IncomingMessage
+        const nodeRes = res as ServerResponse
+
+        if (url === '/api/status' && nodeReq.method === 'GET') {
+          sendJson(nodeRes, 200, getPublicStatus())
+          return
+        }
+
         if (url !== '/api/chat') {
           next()
           return
         }
-
-        const nodeReq = req as IncomingMessage
-        const nodeRes = res as ServerResponse
 
         if (nodeReq.method === 'OPTIONS') {
           nodeRes.writeHead(204, {
@@ -32,11 +48,7 @@ function chatApiPlugin(): Plugin {
         }
 
         if (nodeReq.method !== 'POST') {
-          nodeRes.writeHead(405, {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Cache-Control': 'no-store',
-          })
-          nodeRes.end(JSON.stringify({ error: 'Metóda nie je povolená.' }))
+          sendJson(nodeRes, 405, { error: 'Metóda nie je povolená.' })
           return
         }
 
@@ -50,18 +62,14 @@ function chatApiPlugin(): Plugin {
           const result = await handleChatApi(nodeReq, body)
           const status = 'error' in result ? result.status : 200
           const payload = 'error' in result ? { error: result.error } : result
-          nodeRes.writeHead(status, {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Cache-Control': 'private, no-store',
-            ...('error' in result ? result.headers : undefined),
-          })
-          nodeRes.end(JSON.stringify(payload))
+          sendJson(
+            nodeRes,
+            status,
+            payload,
+            'error' in result ? result.headers : undefined,
+          )
         } catch {
-          nodeRes.writeHead(400, {
-            'Content-Type': 'application/json; charset=utf-8',
-            'Cache-Control': 'no-store',
-          })
-          nodeRes.end(JSON.stringify({ error: 'Neplatný JSON.' }))
+          sendJson(nodeRes, 400, { error: 'Neplatný JSON.' })
         }
       })
     },
@@ -70,7 +78,4 @@ function chatApiPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [react(), chatApiPlugin()],
-  define: {
-    __VYBER_AFFILIATE_ID__: JSON.stringify(affiliateId),
-  },
 })

@@ -27,4 +27,4 @@ V Cursor Apps nastav `OPENAI_API_KEY` a `AFFILIATE_ID`. Bez kľúčov ostáva uk
 
 ## Affiliate ID
 
-Build/runtime číta `AFFILIATE_ID`; bez hodnoty ostáva placeholder.
+`AFFILIATE_ID` sa číta **len na serveri** (`server/affiliate.ts`) pri skladaní odkazov v `/api/chat`. Do client bundle sa nevkladá. Bez hodnoty ostáva placeholder `idp=AFFILIATE_ID`.

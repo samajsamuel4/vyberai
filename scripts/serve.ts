@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { handleChatApi, type ChatApiBody } from '../server/chat-api.ts'
+import { getPublicStatus } from '../server/status.ts'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const host = process.env.HOST || '0.0.0.0'
@@ -95,6 +96,14 @@ async function resolveFile(requestPath: string) {
   return existsSync(fallback) ? fallback : null
 }
 
+async function handleApiStatus(req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== 'GET') {
+    sendJson(res, 405, { error: 'Metóda nie je povolená.' })
+    return
+  }
+  sendJson(res, 200, getPublicStatus())
+}
+
 async function handleApiChat(req: IncomingMessage, res: ServerResponse) {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
@@ -130,6 +139,10 @@ async function handleApiChat(req: IncomingMessage, res: ServerResponse) {
 const server = createServer(async (req, res) => {
   try {
     const urlPath = (req.url || '/').split('?')[0] || '/'
+    if (urlPath === '/api/status') {
+      await handleApiStatus(req, res)
+      return
+    }
     if (urlPath === '/api/chat') {
       await handleApiChat(req, res)
       return
