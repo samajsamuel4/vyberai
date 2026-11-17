@@ -10,7 +10,12 @@ import {
 } from '../lib/chat'
 import { ProductCompare } from '../components/ProductCompare'
 import { isAffiliateConfigured } from '../lib/affiliate'
-import { trackAffiliateClick } from '../lib/tracking'
+import {
+  trackAffiliateClick,
+  trackChatStart,
+  trackPageView,
+  trackRecommendationsShown,
+} from '../lib/tracking'
 
 function formatPrice(eur: number): string {
   return new Intl.NumberFormat('sk-SK', {
@@ -30,9 +35,11 @@ export function HomePage() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const chatRef = useRef<HTMLElement | null>(null)
   const bootstrapped = useRef(false)
+  const chatStarted = useRef(false)
 
   useEffect(() => {
     document.title = 'VyberAI — AI výber produktov'
+    trackPageView('/')
   }, [])
 
   useEffect(() => {
@@ -45,10 +52,20 @@ export function HomePage() {
     chatRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [chatOpen])
 
-  async function send(text: string) {
+  function markChatStart(source: 'cta' | 'composer' | 'suggestion' | 'landing') {
+    if (chatStarted.current) return
+    chatStarted.current = true
+    trackChatStart(source)
+  }
+
+  async function send(
+    text: string,
+    source: 'composer' | 'suggestion' | 'landing' = 'composer',
+  ) {
     const trimmed = text.trim()
     if (!trimmed || busy) return
 
+    markChatStart(source)
     setChatOpen(true)
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -61,6 +78,9 @@ export function HomePage() {
     try {
       const reply = await respondToUser(trimmed)
       setMessages((m) => [...m, reply])
+      if (reply.recommendations?.length) {
+        trackRecommendationsShown(reply.recommendations.map((r) => r.product.id))
+      }
     } finally {
       setBusy(false)
     }
@@ -72,16 +92,17 @@ export function HomePage() {
     if (!q) return
     bootstrapped.current = true
     setSearchParams({}, { replace: true })
-    void send(q)
+    void send(q, 'landing')
     // eslint-disable-next-line react-hooks/exhaustive-deps -- bootstrap once from landing deep-link
   }, [searchParams, setSearchParams])
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
-    void send(input)
+    void send(input, 'composer')
   }
 
   function openChat() {
+    markChatStart('cta')
     setChatOpen(true)
     requestAnimationFrame(() => inputRef.current?.focus())
   }
@@ -216,7 +237,7 @@ export function HomePage() {
                 className="chip"
                 style={{ animationDelay: `${0.05 * i}s` }}
                 disabled={busy}
-                onClick={() => void send(s)}
+                onClick={() => void send(s, 'suggestion')}
               >
                 {s}
               </button>
@@ -281,6 +302,8 @@ export function HomePage() {
         <p className="footer-muted">
           Ukážkový Alza-štýl katalóg · MVP
           {!isAffiliateConfigured() ? ' · affiliate ID neskôr' : ''}
+          {' · '}
+          <Link to="/pohyby">Pohyby</Link>
         </p>
       </footer>
     </div>

@@ -947,6 +947,141 @@
   color: inherit;
 }
 
+.footer-muted a {
+  color: var(--accent-soft);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.footer-muted a:hover {
+  color: var(--accent);
+}
+
+.movements {
+  position: relative;
+  z-index: 1;
+  width: min(720px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.25rem 0 2.5rem;
+  animation: slide-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.movements-stats {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1.1rem;
+}
+
+.movements-stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.movements-stats strong {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.movements-stats span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.movements-section {
+  margin-top: 2rem;
+}
+
+.movements-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
+}
+
+.movements-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.movements-section-head h2 {
+  margin: 0;
+}
+
+.movements-clear {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+.movements-paths {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.movements-paths li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.movements-paths code {
+  font-family: inherit;
+  color: var(--text);
+}
+
+.movements-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.movements-list li {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, auto) 1fr;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+}
+
+.movements-when {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+}
+
+.movements-label {
+  color: var(--text);
+}
+
+.movements-empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+@media (min-width: 640px) {
+  .movements-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 719px) {
   .hero {
     min-height: auto;
