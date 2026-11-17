@@ -53,7 +53,7 @@ function ensureJsonLd(id: string, data: Record<string, unknown>): void {
 }
 
 export function applyPageMeta(meta: PageMeta): void {
-  const url = `${SITE_ORIGIN}${meta.path === '/' ? '/' : meta.path}`
+  const url = absolutePageUrl(meta.path)
   const image = `${SITE_ORIGIN}${OG_IMAGE_PATH}`
 
   document.title = meta.title
@@ -129,9 +129,26 @@ export function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;')
 }
 
+/**
+ * Only allow `/` or a single kebab slug path into HTML meta URLs.
+ * Rejects anything that could break out of attributes (quotes, tags, spaces).
+ */
+export function sanitizeMetaPath(path: string): string {
+  if (!path || path === '/') return '/'
+  const clean = path.split('?')[0]?.split('#')[0] || '/'
+  if (clean === '/') return '/'
+  if (/^\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(clean)) return clean
+  return '/'
+}
+
+export function absolutePageUrl(path: string): string {
+  const safe = sanitizeMetaPath(path)
+  return safe === '/' ? `${SITE_ORIGIN}/` : `${SITE_ORIGIN}${safe}`
+}
+
 export function buildInjectedHead(meta: PageMeta): string {
-  const url = `${SITE_ORIGIN}${meta.path === '/' ? '/' : meta.path}`
-  const image = `${SITE_ORIGIN}${OG_IMAGE_PATH}`
+  const url = escapeHtml(absolutePageUrl(meta.path))
+  const image = escapeHtml(`${SITE_ORIGIN}${OG_IMAGE_PATH}`)
   const title = escapeHtml(meta.title)
   const description = escapeHtml(meta.description)
   const robots = meta.noindex ? 'noindex, nofollow' : 'index, follow'

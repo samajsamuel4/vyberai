@@ -213,10 +213,11 @@ const server = createServer(async (req, res) => {
     }
 
     if (!SPA_PATHS.has(urlPath)) {
+      // Never echo the raw request path into HTML attributes (XSS).
       const notFound = injectHtmlMeta(await readFile(indexPath, 'utf8'), {
         title: 'Stránka neexistuje — VyberAI',
         description: 'Táto cesta na VyberAI neexistuje.',
-        path: urlPath,
+        path: '/',
         noindex: true,
       })
       send(res, 404, notFound, 'text/html; charset=utf-8')
