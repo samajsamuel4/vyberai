@@ -1,8 +1,8 @@
 import { getProductFeed, type Product } from '../src/data/catalog'
 import { buildAffiliateUrl } from './affiliate'
 import {
-  buildAssistantReply,
-  recommendProducts,
+  adviseUser,
+  filterRecommendationsToIntent,
   type Recommendation,
 } from '../src/lib/recommend'
 
@@ -40,28 +40,34 @@ function catalogForPrompt(): string {
 }
 
 function systemPrompt(): string {
-  return `Si VyberAI — slovenský asistent výberu elektroniky. Odpovedáš vždy po slovensky, stručne a priateľsky.
+  return `Si VyberAI — slovenský asistent výberu elektroniky. Odpovedáš vždy po slovensky, stručne a vecne.
 
 Pravidlá:
-1. Ak chýba kategória, rozpočet alebo použitie, polož 1–2 krátke upresňujúce otázky a NEODPORÚČAJ produkty (productIds = []).
-2. Keď máš dosť info, odporuč 1 až 3 produkty VÝHRADNE z katalógu nižšie (použi ich id).
-3. Ku každému id doplň krátky dôvod v slovenčine (reasons).
-4. Text musí byť prirodzená odpoveď pre chat (bez markdown tabuliek).
-5. Nikdy nevymýšľaj produkty mimo katalógu. Affiliate odkazy doplní server.
+1. Ak chýba kategória ALEBO je požiadavka vágna („niečo lacné“, „ahoj“), polož 1–2 krátke upresňujúce otázky a NEODPORÚČAJ produkty (clarifying=true, productIds=[]).
+2. Keď poznáš kategóriu (a ideálne rozpočet/použitie), odporuč 1–3 produkty VÝHRADNE z katalógu (ich id). Každý tip MUSÍ sedieť na kategóriu a rozpočet; žiadne náhodné produkty z inej kategórie.
+3. V text porovnaj tipy stručne (prečo #1 vs ostatné). V reasons uveď konkrétny dôvod (cena, tag, parameter).
+4. Text bez markdown tabuliek. Nikdy nevymýšľaj produkty mimo katalógu. Affiliate doplní server.
+5. Ak rozpočet je príliš nízky pre kategóriu, povedz to a spýtaj sa na vyšší rozpočet namiesto náhodných tipov.
 
 Katalóg:
 ${catalogForPrompt()}
 
-Vráť IBA JSON objekt tvaru:
+Vráť IBA JSON:
 {"text":"...","clarifying":true|false,"productIds":["id1"],"reasons":{"id1":"dôvod"}}`
 }
 
-function fallbackFromLatest(userText: string): LlmChatResult {
-  const recommendations = recommendProducts(userText, 3)
+function fallbackFromHistory(turns: ChatTurn[]): LlmChatResult {
+  const userTexts = turns.filter((t) => t.role === 'user').map((t) => t.text)
+  const latest = userTexts[userTexts.length - 1] ?? ''
+  const prior = userTexts.slice(0, -1)
+  const advice = adviseUser(latest, prior)
   return {
-    text: buildAssistantReply(userText, recommendations),
-    recommendations,
-    sampleNote: 'Odporúčania z ukážkového katalógu (nie živý Alza feed).',
+    text: advice.text,
+    recommendations: advice.recommendations,
+    sampleNote:
+      advice.kind === 'recommend'
+        ? 'Odporúčania z ukážkového katalógu (nie živý Alza feed).'
+        : undefined,
     mode: 'fallback',
   }
 }
@@ -129,7 +135,7 @@ export async function generateChatReply(
   const allowLlm = options.allowLlm !== false
   const apiKey = process.env.OPENAI_API_KEY?.trim()
   if (!allowLlm || !apiKey) {
-    return fallbackFromLatest(latestUser.text)
+    return fallbackFromHistory(history)
   }
 
   try {
@@ -149,7 +155,7 @@ export async function generateChatReply(
       },
       body: JSON.stringify({
         model: MODEL,
-        temperature: 0.4,
+        temperature: 0.2,
         response_format: { type: 'json_object' },
         messages,
         max_tokens: 700,
@@ -158,7 +164,7 @@ export async function generateChatReply(
 
     if (!res.ok) {
       return {
-        ...fallbackFromLatest(latestUser.text),
+        ...fallbackFromHistory(history),
         sampleNote:
           'LLM dočasne nedostupné — použil som ukážkový katalóg (rule-based).',
       }
@@ -173,7 +179,7 @@ export async function generateChatReply(
       parsed = JSON.parse(raw) as LlmJson
     } catch {
       return {
-        ...fallbackFromLatest(latestUser.text),
+        ...fallbackFromHistory(history),
         sampleNote: 'LLM odpoveď nebola JSON — fallback na ukážkový katalóg.',
       }
     }
@@ -195,11 +201,19 @@ export async function generateChatReply(
       }
     }
 
-    const recommendations = mapIdsToRecommendations(ids, parsed.reasons)
+    const priorUsers = history
+      .filter((t) => t.role === 'user' && t.text !== latestUser.text)
+      .map((t) => t.text)
+    const recommendations = filterRecommendationsToIntent(
+      mapIdsToRecommendations(ids, parsed.reasons),
+      latestUser.text,
+      priorUsers,
+    )
+
     if (recommendations.length === 0) {
       return {
-        ...fallbackFromLatest(latestUser.text),
-        sampleNote: 'LLM vrátilo neznáme id — fallback na ukážkový katalóg.',
+        ...fallbackFromHistory(history),
+        sampleNote: 'LLM tipy nesedeli na požiadavku — fallback na katalóg.',
       }
     }
 
@@ -210,7 +224,7 @@ export async function generateChatReply(
     }
   } catch {
     return {
-      ...fallbackFromLatest(latestUser.text),
+      ...fallbackFromHistory(history),
       sampleNote: 'Chyba LLM volania — použil som ukážkový katalóg.',
     }
   }

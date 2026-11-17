@@ -1,6 +1,5 @@
 import {
-  recommendProducts,
-  buildAssistantReply,
+  adviseUser,
   greetingReply,
   type Recommendation,
 } from './recommend'
@@ -27,14 +26,24 @@ export function createGreeting(): ChatMessage {
   }
 }
 
-function localFallback(userText: string): ChatMessage {
-  const recommendations = recommendProducts(userText, 3)
+function priorUserTexts(history: ChatMessage[]): string[] {
+  return history
+    .filter((m) => m.role === 'user')
+    .map((m) => m.text)
+    .slice(-6)
+}
+
+function localFallback(userText: string, history: ChatMessage[] = []): ChatMessage {
+  const advice = adviseUser(userText, priorUserTexts(history))
   return {
     id: `a-${Date.now()}`,
     role: 'assistant',
-    text: buildAssistantReply(userText, recommendations),
-    recommendations,
-    sampleNote: 'Odporúčania z ukážkového katalógu (nie živý Alza feed).',
+    text: advice.text,
+    recommendations: advice.recommendations,
+    sampleNote:
+      advice.kind === 'recommend'
+        ? 'Odporúčania z ukážkového katalógu (nie živý Alza feed).'
+        : undefined,
     mode: 'fallback',
   }
 }
@@ -74,7 +83,7 @@ export async function respondToUser(
     }
 
     if (!res.ok) {
-      return localFallback(userText)
+      return localFallback(userText, history)
     }
 
     const data = (await res.json()) as {
@@ -93,7 +102,7 @@ export async function respondToUser(
       mode: data.mode,
     }
   } catch {
-    return localFallback(userText)
+    return localFallback(userText, history)
   }
 }
 
