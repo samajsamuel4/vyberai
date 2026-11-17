@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { applyPageMeta } from '../lib/seo'
 import {
   clearAnalytics,
   getAnalyticsSummary,
@@ -18,6 +19,8 @@ function labelFor(e: AnalyticsEvent): string {
       return `Tipy zobrazené (${e.count})`
     case 'outbound_click':
       return `Odchod na Alza · ${e.productId}`
+    case 'share_click':
+      return `Zdieľanie tipov · ${e.path}`
   }
 }
 
@@ -36,7 +39,13 @@ export function MovementsPage() {
   const [summary, setSummary] = useState<AnalyticsSummary>(() => getAnalyticsSummary())
 
   useEffect(() => {
-    document.title = 'Pohyby — VyberAI'
+    applyPageMeta({
+      title: 'Pohyby — VyberAI',
+      description:
+        'Lokálna analytika pohybov na VyberAI v tomto prehliadači. Bez indexácie.',
+      path: '/pohyby',
+      noindex: true,
+    })
     trackPageView('/pohyby')
   }, [])
 
@@ -98,6 +107,10 @@ export function MovementsPage() {
           <li>
             <strong>{summary.outboundClicks}</strong>
             <span>odchody na Alza</span>
+          </li>
+          <li>
+            <strong>{summary.shareClicks}</strong>
+            <span>zdieľania</span>
           </li>
         </ul>
 

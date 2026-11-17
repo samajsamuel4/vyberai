@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="VyberAI">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1210"/>
+      <stop offset="55%" stop-color="#13201a"/>
+      <stop offset="100%" stop-color="#1a2e24"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="20%" stop-color="#f4f7ef"/>
+      <stop offset="95%" stop-color="#d4f04a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="980" cy="120" r="220" fill="#d4f04a" opacity="0.12"/>
+  <circle cx="180" cy="520" r="260" fill="#b8d86a" opacity="0.08"/>
+  <text x="72" y="300" font-family="Syne, Figtree, Arial, sans-serif" font-size="96" font-weight="800" fill="url(#brand)">VyberAI</text>
+  <text x="72" y="380" font-family="Figtree, Arial, sans-serif" font-size="36" fill="#a7b3a8">AI výber elektroniky · Alza.sk</text>
+</svg>
