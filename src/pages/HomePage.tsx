@@ -141,16 +141,12 @@ export function HomePage() {
             <span className="headline-soft"> Dostaneš jasný tip.</span>
           </h1>
           <p className="lede">
-            Slovenský asistent výberu elektroniky — 1 až 3 tipy podľa reálnych
-            parametrov, porovnanie vedľa seba a odkaz na Alza.sk.
+            1–3 tipy podľa parametrov a odkaz na Alza.sk.
           </p>
           <div className="cta-row">
             <button type="button" className="cta-primary" onClick={openChat}>
               Spustiť chat
             </button>
-            <a className="cta-ghost" href="#ako">
-              Ako to funguje
-            </a>
           </div>
         </div>
 

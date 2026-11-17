@@ -1,12 +1,15 @@
 :root {
   --font-display: 'Syne', 'Segoe UI', sans-serif;
   --font-body: 'Figtree', 'Segoe UI', sans-serif;
-  --text: #e8ede6;
-  --muted: #a7b3a8;
-  --accent: #d4f04a;
-  --accent-soft: #b8d86a;
+  --text: #e7ecef;
+  --muted: #9aa3ad;
+  --accent: #3dcece;
+  --accent-soft: #7edada;
+  --accent-ink: #0a1218;
+  --panel: rgba(18, 22, 28, 0.78);
+  --stroke: rgba(231, 236, 239, 0.12);
   color: var(--text);
-  background: #0b1210;
+  background: #12151a;
   font-family: var(--font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
