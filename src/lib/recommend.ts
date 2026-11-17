@@ -248,24 +248,42 @@ function tokenize(n: string): string[] {
     .filter((t) => t.length >= 3 && !STOP_TOKENS.has(t) && !/^\d+$/.test(t))
 }
 
-function parseIntent(message: string): ParsedIntent {
-  const n = normalize(message)
+type ParsedTurn = ParsedIntent & {
+  /** Explicit product-type keywords only (no soft use-case hints) */
+  hardCategories: ProductCategory[]
+}
+
+function hardCategoriesFrom(n: string): ProductCategory[] {
   const categories: ProductCategory[] = []
   for (const row of CATEGORY_KEYWORDS) {
     if (row.words.some((w) => n.includes(normalize(w)))) {
       categories.push(row.category)
     }
   }
+  return categories
+}
 
-  // Soft category hints from use-case words (only if none yet)
-  if (categories.length === 0) {
-    if (/\b(anc|hluk|airpods)\b/.test(n) || n.includes('potlacen')) {
-      categories.push('sluchadla')
-    }
-    if (n.includes('poznamk') || n.includes('stylus')) {
-      categories.push('tablet')
-    }
+function softCategoriesFrom(n: string): ProductCategory[] {
+  const categories: ProductCategory[] = []
+  if (/\b(anc|hluk|airpods)\b/.test(n) || n.includes('potlacen')) {
+    categories.push('sluchadla')
   }
+  if (n.includes('poznamk') || n.includes('stylus')) {
+    categories.push('tablet')
+  }
+  return categories
+}
+
+function parseTurn(message: string): ParsedTurn {
+  const n = normalize(message)
+  const hardCategories = hardCategoriesFrom(n)
+  const soft = softCategoriesFrom(n)
+  const categories =
+    hardCategories.length > 0
+      ? hardCategories
+      : soft.length > 0
+        ? soft
+        : []
 
   const tags: string[] = []
   for (const row of TAG_KEYWORDS) {
@@ -279,6 +297,7 @@ function parseIntent(message: string): ParsedIntent {
 
   return {
     categories,
+    hardCategories,
     maxBudget,
     minBudget,
     tags,
@@ -288,14 +307,30 @@ function parseIntent(message: string): ParsedIntent {
   }
 }
 
+function parseIntent(message: string): ParsedIntent {
+  const { hardCategories: _hard, ...intent } = parseTurn(message)
+  void _hard
+  return intent
+}
+
 function intentIsActionable(intent: ParsedIntent): boolean {
   // Need an explicit product category — brand/tags alone still clarify
   return intent.categories.length > 0
 }
 
+const USE_CASE_FOCUS_TAGS = [
+  'gaming',
+  'fotenie',
+  'anc',
+  'skola',
+  'student',
+  'office',
+] as const
+
 /**
- * Merge conversation turns with latest-wins for category + budget.
- * Earlier turns only fill gaps (so follow-ups like "lacnejšie než 700" keep the category).
+ * Merge conversation turns with latest-wins for budget.
+ * Category only changes on an explicit hard category keyword in a later turn.
+ * Soft hints never overwrite an established category from history.
  */
 function resolveIntentFromHistory(
   userMessage: string,
@@ -304,7 +339,7 @@ function resolveIntentFromHistory(
   const turns = [...priorUserTexts, userMessage]
     .map((t) => t.trim())
     .filter(Boolean)
-    .map((t) => parseIntent(t))
+    .map((t) => parseTurn(t))
 
   const empty: ParsedIntent = {
     categories: [],
@@ -321,11 +356,16 @@ function resolveIntentFromHistory(
   let maxBudget: number | null = null
   let minBudget: number | null = null
   let brands: string[] = []
-  const tags: string[] = []
+  let tags: string[] = []
   const tokens: string[] = []
 
   for (const turn of turns) {
-    if (turn.categories.length > 0) categories = turn.categories
+    if (turn.hardCategories.length > 0) {
+      categories = turn.hardCategories
+    } else if (categories.length === 0 && turn.categories.length > 0) {
+      // Soft hint only seeds category when none established yet
+      categories = turn.categories
+    }
     if (turn.maxBudget != null) maxBudget = turn.maxBudget
     if (turn.minBudget != null) minBudget = turn.minBudget
     if (turn.brands.length > 0) brands = turn.brands
@@ -337,22 +377,19 @@ function resolveIntentFromHistory(
     }
   }
 
-  // Latest turn can drop a conflicting use-case: if it names gaming/fotenie/anc/skola, prefer those
   const latest = turns[turns.length - 1]
-  const focusTags = ['gaming', 'fotenie', 'anc', 'skola', 'student', 'office', 'budget', 'premium']
-  if (latest.tags.some((t) => focusTags.includes(t))) {
-    const kept = tags.filter((t) => !focusTags.includes(t) || latest.tags.includes(t))
+  // Price-only follow-ups (budget/premium) must NOT wipe prior use-case tags
+  const latestUseCase = latest.tags.filter((t) =>
+    (USE_CASE_FOCUS_TAGS as readonly string[]).includes(t),
+  )
+  if (latestUseCase.length > 0) {
+    tags = tags.filter(
+      (t) =>
+        !(USE_CASE_FOCUS_TAGS as readonly string[]).includes(t) ||
+        latestUseCase.includes(t),
+    )
     for (const t of latest.tags) {
-      if (!kept.includes(t)) kept.push(t)
-    }
-    return {
-      categories,
-      maxBudget,
-      minBudget,
-      tags: kept,
-      brands,
-      tokens,
-      raw: latest.raw,
+      if (!tags.includes(t)) tags.push(t)
     }
   }
 
