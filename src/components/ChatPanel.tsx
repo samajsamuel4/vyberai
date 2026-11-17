@@ -64,6 +64,8 @@ export type ChatPanelProps = {
   initiallyOpen?: boolean
   /** Increment to focus/open the panel from a parent CTA */
   focusToken?: number
+  /** Notify parent when in-flight request state changes */
+  onBusyChange?: (busy: boolean) => void
 }
 
 export function ChatPanel({
@@ -74,18 +76,19 @@ export function ChatPanel({
   className = '',
   initiallyOpen = false,
   focusToken = 0,
+  onBusyChange,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([createGreeting()])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [chatOpen, setChatOpen] = useState(initiallyOpen)
   const [shareStatus, setShareStatus] = useState<string | null>(null)
-  const [lastUserQuery, setLastUserQuery] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const panelRef = useRef<HTMLElement | null>(null)
   const chatStarted = useRef(false)
   const lastAutoKey = useRef(0)
+  const busyRef = useRef(false)
 
   useEffect(() => {
     listRef.current?.scrollTo({
@@ -116,17 +119,22 @@ export function ChatPanel({
     trackChatStart(source)
   }
 
+  function setBusyState(next: boolean) {
+    busyRef.current = next
+    setBusy(next)
+    onBusyChange?.(next)
+  }
+
   async function send(
     text: string,
     source: 'composer' | 'suggestion' | 'landing' = 'composer',
-  ) {
+  ): Promise<boolean> {
     const trimmed = text.trim()
-    if (!trimmed || busy) return
+    if (!trimmed || busyRef.current) return false
 
     markChatStart(source)
     setChatOpen(true)
     setShareStatus(null)
-    setLastUserQuery(trimmed)
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
       role: 'user',
@@ -135,17 +143,22 @@ export function ChatPanel({
     const prior = messages
     setMessages((m) => [...m, userMsg])
     setInput('')
-    setBusy(true)
+    setBusyState(true)
     try {
       const reply = await respondToUser(trimmed, prior)
-      setMessages((m) => [...m, reply])
-      if (reply.recommendations?.length) {
+      const withShare: ChatMessage =
+        reply.recommendations && reply.recommendations.length > 0
+          ? { ...reply, shareQuery: trimmed }
+          : reply
+      setMessages((m) => [...m, withShare])
+      if (withShare.recommendations?.length) {
         trackRecommendationsShown(
-          reply.recommendations.map((r) => r.product.id),
+          withShare.recommendations.map((r) => r.product.id),
         )
       }
+      return true
     } finally {
-      setBusy(false)
+      setBusyState(false)
     }
   }
 
@@ -153,11 +166,12 @@ export function ChatPanel({
     if (!autoSend) return
     const q = autoSend.text.trim()
     if (!q || autoSend.key === lastAutoKey.current) return
+    if (busyRef.current) return
     lastAutoKey.current = autoSend.key
     onAutoSendConsumed?.()
     void send(q, 'landing')
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- key-driven bootstrap
-  }, [autoSend])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- key/busy-driven bootstrap
+  }, [autoSend, busy])
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -197,9 +211,10 @@ export function ChatPanel({
   const lastRecs = [...messages]
     .reverse()
     .find((m) => m.recommendations && m.recommendations.length > 0)
+  const shareQuery = lastRecs?.shareQuery?.trim() || ''
   const followUps =
-    lastRecs?.recommendations && lastUserQuery
-      ? followUpChips(lastUserQuery, lastRecs.recommendations)
+    lastRecs?.recommendations && shareQuery
+      ? followUpChips(shareQuery, lastRecs.recommendations)
       : []
 
   return (
@@ -284,12 +299,14 @@ export function ChatPanel({
                   ))}
                 </ol>
                 <ProductCompare recommendations={msg.recommendations} />
-                {msg === lastRecs && lastUserQuery && (
+                {msg === lastRecs && msg.shareQuery && (
                   <div className="share-row">
                     <button
                       type="button"
                       className="share-btn"
-                      onClick={() => void shareRecommendations(lastUserQuery)}
+                      onClick={() =>
+                        void shareRecommendations(msg.shareQuery || '')
+                      }
                     >
                       Zdieľať tipy
                     </button>

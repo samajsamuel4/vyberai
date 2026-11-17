@@ -19,6 +19,7 @@ export function CategoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const landing = getLandingBySlug(slug)
   const [focusToken, setFocusToken] = useState(0)
+  const [chatBusy, setChatBusy] = useState(false)
   const [autoSend, setAutoSend] = useState<{
     key: number
     text: string
@@ -34,6 +35,9 @@ export function CategoryPage() {
 
   useEffect(() => {
     if (!landing) return
+    setAutoSend(null)
+    setFocusToken(0)
+    setChatBusy(false)
     const path = `/${landing.slug}`
     applyPageMeta({
       title: `${landing.title} — VyberAI tipy | Alza.sk`,
@@ -56,6 +60,7 @@ export function CategoryPage() {
   if (!landing) return <Navigate to="/" replace />
 
   function startWithPrompt(prompt: string) {
+    if (chatBusy) return
     setAutoSend({ key: Date.now(), text: prompt })
     setFocusToken((n) => n + 1)
   }
@@ -87,6 +92,7 @@ export function CategoryPage() {
           <button
             type="button"
             className="cta-primary"
+            disabled={chatBusy}
             onClick={() => startWithPrompt(landing.chatPrompt)}
           >
             Spýtať sa VyberAI
@@ -134,6 +140,7 @@ export function CategoryPage() {
                   <button
                     type="button"
                     className="sample-ask"
+                    disabled={chatBusy}
                     onClick={() =>
                       startWithPrompt(
                         `${p.name} alebo podobné do ${p.priceEur + 50} €`,
@@ -156,6 +163,7 @@ export function CategoryPage() {
                 key={s}
                 type="button"
                 className="chip"
+                disabled={chatBusy}
                 onClick={() => startWithPrompt(s)}
               >
                 {s}
@@ -165,6 +173,7 @@ export function CategoryPage() {
         </div>
 
         <ChatPanel
+          key={landing.slug}
           className="landing-chat"
           suggestions={landing.suggestions}
           shareBasePath={`/${landing.slug}`}
@@ -172,6 +181,7 @@ export function CategoryPage() {
           onAutoSendConsumed={() => setAutoSend(null)}
           focusToken={focusToken}
           initiallyOpen={Boolean(autoSend)}
+          onBusyChange={setChatBusy}
         />
 
         <section className="landing-faq" aria-labelledby="faq-title">

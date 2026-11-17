@@ -7,7 +7,7 @@ export const DEFAULT_TITLE = 'VyberAI — AI výber produktov'
 export const DEFAULT_DESCRIPTION =
   'VyberAI — slovenský AI chat na výber elektroniky s affiliate odkazmi na Alza.sk. Napíš rozpočet a použitie, dostaneš 1–3 tipy.'
 
-export const OG_IMAGE_PATH = '/og.svg'
+export const OG_IMAGE_PATH = '/og.png'
 
 export type PageMeta = {
   title: string

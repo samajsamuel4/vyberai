@@ -1036,8 +1036,19 @@
   border-bottom: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
-.sample-ask:hover {
+.sample-ask:hover:not(:disabled) {
   color: var(--accent-soft);
+}
+
+.sample-ask:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cta-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .landing-chat {
