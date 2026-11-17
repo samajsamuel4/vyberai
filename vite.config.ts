@@ -2,6 +2,11 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 import { handleChatApi, type ChatApiBody } from './server/chat-api'
+import {
+  BodyTooLargeError,
+  InvalidJsonError,
+  readJsonBodyCapped,
+} from './server/read-body'
 import { getPublicStatus } from './server/status'
 
 function sendJson(
@@ -53,12 +58,7 @@ function chatApiPlugin(): Plugin {
         }
 
         try {
-          const chunks: Buffer[] = []
-          for await (const chunk of nodeReq) {
-            chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
-          }
-          const raw = Buffer.concat(chunks).toString('utf8')
-          const body = (raw.trim() ? JSON.parse(raw) : {}) as ChatApiBody
+          const body = (await readJsonBodyCapped(nodeReq)) as ChatApiBody
           const result = await handleChatApi(nodeReq, body)
           const status = 'error' in result ? result.status : 200
           const payload = 'error' in result ? { error: result.error } : result
@@ -68,7 +68,15 @@ function chatApiPlugin(): Plugin {
             payload,
             'error' in result ? result.headers : undefined,
           )
-        } catch {
+        } catch (err) {
+          if (err instanceof BodyTooLargeError) {
+            sendJson(nodeRes, 413, { error: err.message })
+            return
+          }
+          if (err instanceof InvalidJsonError) {
+            sendJson(nodeRes, 400, { error: err.message })
+            return
+          }
           sendJson(nodeRes, 400, { error: 'Neplatný JSON.' })
         }
       })
