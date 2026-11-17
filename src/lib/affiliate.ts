@@ -1,37 +1,27 @@
 /**
- * Alza Partner tracking ID.
- * Build injects process.env.AFFILIATE_ID when present (Cursor app secret / CI).
- * Falls back to placeholder so the MVP works on sample data.
+ * Client-safe Alza link helpers.
+ * Real AFFILIATE_ID lives only on the server (`server/affiliate.ts`).
+ * Browser fallback uses a public placeholder so sample data still works.
  */
-declare const __VYBER_AFFILIATE_ID__: string | undefined
 
 const PLACEHOLDER = 'AFFILIATE_ID'
 
-function resolveAffiliateId(): string {
-  const fromDefine =
-    typeof __VYBER_AFFILIATE_ID__ !== 'undefined' ? __VYBER_AFFILIATE_ID__ : ''
-  if (fromDefine && fromDefine !== PLACEHOLDER) return fromDefine
-  // Server runtime (tsx serve) — Cursor Apps binds AFFILIATE_ID as env.
-  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env
-  const fromEnv = env?.AFFILIATE_ID?.trim()
-  if (fromEnv) return fromEnv
-  return fromDefine || PLACEHOLDER
-}
-
-export const AFFILIATE_ID = resolveAffiliateId()
-
+/** Always false in the browser — real config is server-only. */
 export function isAffiliateConfigured(): boolean {
-  return AFFILIATE_ID !== PLACEHOLDER && AFFILIATE_ID.trim().length > 0
+  return false
 }
 
 /**
- * Build an outbound Alza.sk affiliate URL.
- * Query param `idp` mirrors typical Alza Partner tracking.
+ * Placeholder outbound Alza URL for offline / local fallback tips.
+ * Server responses replace this with a real `idp` when AFFILIATE_ID is bound.
  */
 export function buildAffiliateUrl(alzaPath: string): string {
   const path = alzaPath.replace(/^\/+/, '')
   const url = new URL(`https://www.alza.sk/${path}`)
-  url.searchParams.set('idp', AFFILIATE_ID)
+  url.searchParams.set('idp', PLACEHOLDER)
   return url.toString()
+}
+
+export function affiliatePlaceholderId(): string {
+  return PLACEHOLDER
 }

@@ -9,7 +9,6 @@ import {
   type ChatMessage,
 } from '../lib/chat'
 import { ProductCompare } from '../components/ProductCompare'
-import { isAffiliateConfigured } from '../lib/affiliate'
 import {
   trackAffiliateClick,
   trackChatStart,
@@ -31,6 +30,7 @@ export function HomePage() {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
+  const [affiliateConfigured, setAffiliateConfigured] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const chatRef = useRef<HTMLElement | null>(null)
@@ -40,6 +40,14 @@ export function HomePage() {
   useEffect(() => {
     document.title = 'VyberAI — AI výber produktov'
     trackPageView('/')
+    void fetch('/api/status')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { affiliateConfigured?: boolean } | null) => {
+        if (data?.affiliateConfigured) setAffiliateConfigured(true)
+      })
+      .catch(() => {
+        /* offline / no API */
+      })
   }, [])
 
   useEffect(() => {
@@ -302,7 +310,7 @@ export function HomePage() {
         </p>
         <p className="footer-muted">
           Ukážkový Alza-štýl katalóg · MVP
-          {!isAffiliateConfigured() ? ' · affiliate ID neskôr' : ''}
+          {!affiliateConfigured ? ' · affiliate ID neskôr' : ''}
           {' · '}
           <Link to="/pohyby">Pohyby</Link>
         </p>

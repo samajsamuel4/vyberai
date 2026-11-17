@@ -1,4 +1,5 @@
 import { getIdentity } from '../cursor/identity'
+import { buildAffiliateUrl } from './affiliate'
 import {
   generateChatReply,
   hasOpenAiKey,
@@ -68,9 +69,14 @@ export async function handleChatApi(
   }
 
   const result = await generateChatReply(messages, { allowLlm })
+  // Stamp affiliate URLs server-side so the partner ID never ships in the client bundle.
+  const recommendations = result.recommendations.map((r) => ({
+    ...r,
+    affiliateUrl: buildAffiliateUrl(r.product.alzaPath),
+  }))
   return {
     text: result.text,
-    recommendations: result.recommendations,
+    recommendations,
     sampleNote: result.sampleNote,
     mode: result.mode,
   }
