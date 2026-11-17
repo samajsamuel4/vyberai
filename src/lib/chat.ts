@@ -9,6 +9,7 @@ export type ChatMessage = {
   recommendations?: Recommendation[]
   /** Shown when using sample/rule-based engine */
   sampleNote?: string
+  mode?: 'llm' | 'fallback'
 }
 
 export function createGreeting(): ChatMessage {
@@ -19,21 +20,61 @@ export function createGreeting(): ChatMessage {
   }
 }
 
-/**
- * Process a user turn. Always rule-based in the browser MVP (no API key needed).
- * Optional later: bind OPENAI_API_KEY on a server route to polish copy —
- * recommendations still come from the mock catalog. Secrets never ship to the client.
- */
-export async function respondToUser(userText: string): Promise<ChatMessage> {
+function localFallback(userText: string): ChatMessage {
   const recommendations = recommendProducts(userText, 3)
-  const text = buildAssistantReply(userText, recommendations)
-
   return {
     id: `a-${Date.now()}`,
     role: 'assistant',
-    text,
+    text: buildAssistantReply(userText, recommendations),
     recommendations,
     sampleNote: 'Odporúčania z ukážkového katalógu (nie živý Alza feed).',
+    mode: 'fallback',
+  }
+}
+
+/**
+ * Prefer server `/api/chat` (LLM when OPENAI_API_KEY is set).
+ * Falls back to in-browser rule-based catalog if the API is unreachable.
+ */
+export async function respondToUser(
+  userText: string,
+  history: ChatMessage[] = [],
+): Promise<ChatMessage> {
+  const turns = [
+    ...history
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .map((m) => ({ role: m.role, text: m.text })),
+    { role: 'user' as const, text: userText },
+  ]
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ messages: turns }),
+    })
+
+    if (!res.ok) {
+      return localFallback(userText)
+    }
+
+    const data = (await res.json()) as {
+      text?: string
+      recommendations?: Recommendation[]
+      sampleNote?: string
+      mode?: 'llm' | 'fallback'
+    }
+
+    return {
+      id: `a-${Date.now()}`,
+      role: 'assistant',
+      text: data.text?.trim() || 'Tu sú tipy z nášho katalógu.',
+      recommendations: data.recommendations ?? [],
+      sampleNote: data.sampleNote,
+      mode: data.mode,
+    }
+  } catch {
+    return localFallback(userText)
   }
 }
 

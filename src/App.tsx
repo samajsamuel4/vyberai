@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { CATEGORY_LABELS } from './data/catalog'
 import {
@@ -49,7 +51,7 @@ export default function App() {
     setInput('')
     setBusy(true)
     try {
-      const reply = await respondToUser(trimmed)
+      const reply = await respondToUser(trimmed, messages)
       setMessages((m) => [...m, reply])
     } finally {
       setBusy(false)
