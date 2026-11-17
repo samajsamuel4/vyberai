@@ -10,10 +10,18 @@ import {
   readJsonBodyCapped,
 } from '../server/read-body.ts'
 import { getPublicStatus } from '../server/status.ts'
+import { getLandingBySlug, knownSpaPaths } from '../src/data/landings.ts'
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  injectHtmlMeta,
+  type PageMeta,
+} from '../src/lib/seo.ts'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const host = process.env.HOST || '0.0.0.0'
 const port = Number(process.env.PORT || 3000)
+const SPA_PATHS = new Set(knownSpaPaths())
 
 const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -72,8 +80,48 @@ function sendJson(
   res.end(JSON.stringify(body))
 }
 
-async function resolveFile(requestPath: string) {
-  const candidate = safeJoin(root, requestPath)
+function cleanPath(requestPath: string): string {
+  const raw = decodeURIComponent((requestPath || '/').split('?')[0] || '/')
+  if (raw.length > 1 && raw.endsWith('/')) return raw.slice(0, -1) || '/'
+  return raw || '/'
+}
+
+function metaForPath(urlPath: string): PageMeta {
+  if (urlPath === '/') {
+    return {
+      title: DEFAULT_TITLE,
+      description: DEFAULT_DESCRIPTION,
+      path: '/',
+    }
+  }
+  if (urlPath === '/pohyby') {
+    return {
+      title: 'Pohyby — VyberAI',
+      description:
+        'Lokálna analytika pohybov na VyberAI v tomto prehliadači. Bez indexácie.',
+      path: '/pohyby',
+      noindex: true,
+    }
+  }
+  const slug = urlPath.replace(/^\//, '')
+  const landing = getLandingBySlug(slug)
+  if (landing) {
+    return {
+      title: `${landing.title} — VyberAI tipy | Alza.sk`,
+      description: landing.metaDescription,
+      path: `/${landing.slug}`,
+    }
+  }
+  return {
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    path: urlPath,
+    noindex: true,
+  }
+}
+
+async function resolveStaticFile(urlPath: string) {
+  const candidate = safeJoin(root, urlPath)
   if (!candidate) return null
 
   try {
@@ -84,11 +132,9 @@ async function resolveFile(requestPath: string) {
       if (existsSync(nested)) return nested
     }
   } catch {
-    // fall through to SPA index
+    // not a static file
   }
-
-  const fallback = path.join(root, 'index.html')
-  return existsSync(fallback) ? fallback : null
+  return null
 }
 
 async function handleApiStatus(req: IncomingMessage, res: ServerResponse) {
@@ -141,7 +187,7 @@ async function handleApiChat(req: IncomingMessage, res: ServerResponse) {
 
 const server = createServer(async (req, res) => {
   try {
-    const urlPath = (req.url || '/').split('?')[0] || '/'
+    const urlPath = cleanPath(req.url || '/')
     if (urlPath === '/api/status') {
       await handleApiStatus(req, res)
       return
@@ -151,16 +197,37 @@ const server = createServer(async (req, res) => {
       return
     }
 
-    const filePath = await resolveFile(req.url || '/')
-    if (!filePath) {
+    const staticFile = await resolveStaticFile(urlPath)
+    if (staticFile && path.extname(staticFile).toLowerCase() !== '.html') {
+      const ext = path.extname(staticFile).toLowerCase()
+      const type = TYPES[ext] || 'application/octet-stream'
+      const body = await readFile(staticFile)
+      send(res, 200, body, type)
+      return
+    }
+
+    const indexPath = path.join(root, 'index.html')
+    if (!existsSync(indexPath)) {
       send(res, 404, 'Not found', 'text/plain; charset=utf-8')
       return
     }
 
-    const ext = path.extname(filePath).toLowerCase()
-    const type = TYPES[ext] || 'application/octet-stream'
-    const body = await readFile(filePath)
-    send(res, 200, body, type)
+    if (!SPA_PATHS.has(urlPath)) {
+      const notFound = injectHtmlMeta(await readFile(indexPath, 'utf8'), {
+        title: 'Stránka neexistuje — VyberAI',
+        description: 'Táto cesta na VyberAI neexistuje.',
+        path: urlPath,
+        noindex: true,
+      })
+      send(res, 404, notFound, 'text/html; charset=utf-8')
+      return
+    }
+
+    const html = injectHtmlMeta(
+      await readFile(indexPath, 'utf8'),
+      metaForPath(urlPath),
+    )
+    send(res, 200, html, 'text/html; charset=utf-8')
   } catch (err) {
     console.error(err)
     send(res, 500, 'Server error', 'text/plain; charset=utf-8')
