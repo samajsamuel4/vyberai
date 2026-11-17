@@ -6,6 +6,7 @@ import {
   respondToUser,
   type ChatMessage,
 } from './lib/chat'
+import { ProductCompare } from './components/ProductCompare'
 import { isAffiliateConfigured } from './lib/affiliate'
 import { trackAffiliateClick } from './lib/tracking'
 import './App.css'
@@ -93,8 +94,8 @@ export default function App() {
             <span className="headline-soft"> Dostaneš jasný tip.</span>
           </h1>
           <p className="lede">
-            Slovenský asistent výberu elektroniky — 1 až 3 odporúčania a priamy
-            odkaz na Alza.sk.
+            Slovenský asistent výberu elektroniky — 1 až 3 tipy, porovnanie
+            vedľa seba a priamy odkaz na Alza.sk.
           </p>
           <div className="cta-row">
             <button type="button" className="cta-primary" onClick={openChat}>
@@ -127,47 +128,50 @@ export default function App() {
               <article key={msg.id} className={`bubble bubble-${msg.role}`}>
                 <p>{msg.text}</p>
                 {msg.recommendations && msg.recommendations.length > 0 && (
-                  <ol className="rec-list">
-                    {msg.recommendations.map((rec, index) => (
-                      <li key={rec.product.id} className="rec-item">
-                        <div className="rec-rank" aria-hidden="true">
-                          {index + 1}
-                        </div>
-                        <div className="rec-body">
-                          <div className="rec-meta">
-                            <span className="rec-cat">
-                              {CATEGORY_LABELS[rec.product.category]}
-                              <span className="rec-brand"> · {rec.product.brand}</span>
-                            </span>
-                            <strong className="rec-name">{rec.product.name}</strong>
-                            <span className="rec-price">
-                              {formatPrice(rec.product.priceEur)}
-                            </span>
-                            <p className="rec-reason">{rec.reason}</p>
+                  <>
+                    <ol className="rec-list">
+                      {msg.recommendations.map((rec, index) => (
+                        <li key={rec.product.id} className="rec-item">
+                          <div className="rec-rank" aria-hidden="true">
+                            {index + 1}
                           </div>
-                          <a
-                            className="rec-cta"
-                            href={rec.affiliateUrl}
-                            target="_blank"
-                            rel="noopener noreferrer sponsored"
-                            onClick={() =>
-                              trackAffiliateClick({
-                                productId: rec.product.id,
-                                productName: rec.product.name,
-                                category: rec.product.category,
-                                priceEur: rec.product.priceEur,
-                                affiliateUrl: rec.affiliateUrl,
-                                rank: index + 1,
-                              })
-                            }
-                          >
-                            <span>Pozrieť na Alza.sk</span>
-                            <span className="rec-aff">affiliate</span>
-                          </a>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
+                          <div className="rec-body">
+                            <div className="rec-meta">
+                              <span className="rec-cat">
+                                {CATEGORY_LABELS[rec.product.category]}
+                                <span className="rec-brand"> · {rec.product.brand}</span>
+                              </span>
+                              <strong className="rec-name">{rec.product.name}</strong>
+                              <span className="rec-price">
+                                {formatPrice(rec.product.priceEur)}
+                              </span>
+                              <p className="rec-reason">{rec.reason}</p>
+                            </div>
+                            <a
+                              className="rec-cta"
+                              href={rec.affiliateUrl}
+                              target="_blank"
+                              rel="noopener noreferrer sponsored"
+                              onClick={() =>
+                                trackAffiliateClick({
+                                  productId: rec.product.id,
+                                  productName: rec.product.name,
+                                  category: rec.product.category,
+                                  priceEur: rec.product.priceEur,
+                                  affiliateUrl: rec.affiliateUrl,
+                                  rank: index + 1,
+                                })
+                              }
+                            >
+                              <span>Pozrieť na Alza.sk</span>
+                              <span className="rec-aff">affiliate</span>
+                            </a>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                    <ProductCompare recommendations={msg.recommendations} />
+                  </>
                 )}
                 {msg.sampleNote && <p className="sample-note">{msg.sampleNote}</p>}
               </article>
@@ -224,8 +228,9 @@ export default function App() {
       <section id="ako" className="how">
         <h2>Tri kroky k tipu</h2>
         <p>
-          Napíšeš, čo hľadáš. VyberAI vyberie z katalógu 1–3 produkty s dôvodom.
-          Klik ťa pošle na Alza.sk cez affiliate odkaz — cena pre teba ostáva rovnaká.
+          Napíšeš, čo hľadáš. VyberAI vyberie 1–3 produkty, ukáže porovnanie
+          vedľa seba a pošle ťa na Alza.sk cez affiliate odkaz — cena pre teba
+          ostáva rovnaká.
         </p>
       </section>
 
