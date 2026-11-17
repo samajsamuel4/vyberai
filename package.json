@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "start": "node scripts/serve.mjs",
+    "start": "tsx scripts/serve.ts",
     "lint": "oxlint",
     "preview": "vite preview --host 0.0.0.0 --port 4173"
   },
@@ -15,7 +15,8 @@
     "@fontsource/syne": "^5.3.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-router-dom": "^7.18.5"
+    "react-router-dom": "^7.18.5",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

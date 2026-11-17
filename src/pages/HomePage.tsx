@@ -72,11 +72,12 @@ export function HomePage() {
       role: 'user',
       text: trimmed,
     }
+    const prior = messages
     setMessages((m) => [...m, userMsg])
     setInput('')
     setBusy(true)
     try {
-      const reply = await respondToUser(trimmed)
+      const reply = await respondToUser(trimmed, prior)
       setMessages((m) => [...m, reply])
       if (reply.recommendations?.length) {
         trackRecommendationsShown(reply.recommendations.map((r) => r.product.id))
