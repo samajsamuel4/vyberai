@@ -1,6 +1,6 @@
 import {
-  CATALOG,
   CATEGORY_LABELS,
+  getProductFeed,
   type Product,
   type ProductCategory,
 } from '../data/catalog'
@@ -235,6 +235,10 @@ function reasonFor(product: Product, intent: ParsedIntent): string {
   if (intent.brands.some((b) => product.brand.toLowerCase() === b)) {
     parts.push(`presne značka ${product.brand}, ktorú hľadáš`)
   }
+  const specHit = product.specs.find((s) =>
+    intent.tokens.some((t) => normalize(s).includes(t)),
+  )
+  if (specHit) parts.push(`sedí parameter „${specHit}“`)
   if (parts.length === 0) {
     parts.push(product.summary)
   } else {
@@ -245,12 +249,21 @@ function reasonFor(product: Product, intent: ParsedIntent): string {
 
 function textOverlapScore(product: Product, tokens: string[]): number {
   if (tokens.length === 0) return 0
-  const hay = normalize(`${product.name} ${product.brand} ${product.summary} ${product.tags.join(' ')}`)
+  const hay = normalize(
+    [
+      product.name,
+      product.brand,
+      product.summary,
+      product.description,
+      product.specs.join(' '),
+      product.tags.join(' '),
+    ].join(' '),
+  )
   let hits = 0
   for (const token of tokens) {
     if (hay.includes(token)) hits += 1
   }
-  return hits * 4
+  return hits * 5
 }
 
 function scoreProduct(product: Product, intent: ParsedIntent): number {
@@ -321,12 +334,13 @@ function diversify(picks: Recommendation[], limit: number): Recommendation[] {
 }
 
 /**
- * Rule-based matching over the mock catalog. Returns 1–3 recommendations.
- * Works without any LLM API key.
+ * Rule-based matching over the Alza-like product feed. Returns 1–3 tips.
+ * Uses name, specs and full description — works without an LLM API key.
  */
 export function recommendProducts(userMessage: string, limit = 3): Recommendation[] {
+  const feed = getProductFeed()
   const intent = parseIntent(userMessage)
-  const scored = CATALOG.map((product) => ({
+  const scored = feed.map((product) => ({
     product,
     score: scoreProduct(product, intent),
     reason: reasonFor(product, intent),
@@ -338,14 +352,15 @@ export function recommendProducts(userMessage: string, limit = 3): Recommendatio
   let picks = diversify(scored, limit)
 
   if (picks.length === 0) {
-    picks = CATALOG.filter((p) => p.priceEur >= 80 && p.priceEur <= 900)
+    picks = feed
+      .filter((p) => p.priceEur >= 80 && p.priceEur <= 900)
       .slice()
       .sort((a, b) => a.priceEur - b.priceEur)
       .slice(0, limit)
       .map((product) => ({
         product,
         score: 1,
-        reason: `Univerzálny tip z nášho katalógu: ${product.summary}`,
+        reason: `Univerzálny tip z katalógu: ${product.summary}`,
         affiliateUrl: buildAffiliateUrl(product.alzaPath),
       }))
   }
