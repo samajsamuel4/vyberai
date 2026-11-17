@@ -77,6 +77,26 @@ export function ProductCompare({ recommendations }: Props) {
               ))}
             </tr>
             <tr>
+              <th scope="row">Parametre</th>
+              {cols.map((rec) => (
+                <td key={`${rec.product.id}-specs`} className="compare-specs">
+                  <ul>
+                    {rec.product.specs.slice(0, 5).map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <th scope="row">Opis</th>
+              {cols.map((rec) => (
+                <td key={`${rec.product.id}-desc`} className="compare-desc">
+                  {rec.product.description}
+                </td>
+              ))}
+            </tr>
+            <tr>
               <th scope="row">Prečo</th>
               {cols.map((rec) => (
                 <td key={`${rec.product.id}-why`} className="compare-why">

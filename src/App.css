@@ -376,6 +376,32 @@
   font-size: 0.88rem !important;
 }
 
+.rec-desc {
+  margin: 0.35rem 0 0 !important;
+  color: var(--text);
+  font-size: 0.82rem !important;
+  line-height: 1.45 !important;
+  opacity: 0.88;
+}
+
+.rec-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0;
+}
+
+.rec-specs li {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  padding-bottom: 0.05rem;
+}
+
 .rec-cta {
   display: inline-flex;
   align-items: center;
@@ -516,6 +542,28 @@
   color: var(--muted);
   line-height: 1.4;
   font-size: 0.78rem;
+}
+
+.compare-specs ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.compare-specs li {
+  font-size: 0.75rem;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.compare-desc {
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--muted);
+  max-width: 16rem;
 }
 
 .compare-cta {
@@ -764,6 +812,141 @@
   }
 }
 
+.categories,
+.landing-nav {
+  position: relative;
+  z-index: 1;
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto 2.5rem;
+}
+
+.categories h2,
+.landing-nav-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  letter-spacing: -0.03em;
+  margin: 0 0 0.45rem;
+}
+
+.categories-lede {
+  margin: 0 0 1.1rem;
+  color: var(--muted);
+  max-width: 36rem;
+}
+
+.category-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.65rem;
+}
+
+.category-link {
+  display: block;
+  padding: 0.85rem 0.95rem;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.92rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.category-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.landing {
+  position: relative;
+  z-index: 1;
+  width: min(720px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.25rem 0 2rem;
+  min-height: min(72svh, 640px);
+  animation: slide-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-brand {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.4rem, 8vw, 3.6rem);
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  margin: 0 0 0.85rem;
+  background: linear-gradient(120deg, #f4f7ef 20%, var(--accent) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.landing-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-soft);
+}
+
+.landing-headline {
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 4.5vw, 2.35rem);
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  margin: 0 0 0.75rem;
+}
+
+.landing-lede {
+  margin: 0 0 1.35rem;
+  color: var(--muted);
+  font-size: 1.02rem;
+  line-height: 1.55;
+  max-width: 38rem;
+}
+
+.landing-bullets {
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.landing-bullets li {
+  padding-left: 1rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.landing-prompts {
+  margin-top: 1.85rem;
+}
+
+.landing-prompts-title {
+  margin: 0 0 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.landing-chips {
+  flex-wrap: wrap;
+}
+
+.chip-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 @media (max-width: 719px) {
   .hero {
     min-height: auto;
@@ -776,6 +959,10 @@
 
   .brand-hero {
     font-size: clamp(2.6rem, 14vw, 3.4rem);
+  }
+
+  .landing-brand {
+    font-size: clamp(2.2rem, 12vw, 3rem);
   }
 }
 
