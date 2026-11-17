@@ -91,56 +91,35 @@ export function checkRateLimit(
   }
 }
 
-/** Extract client IP from Node req, Fetch Request, or headers bag. */
+/**
+ * Rate-limit key from the platform-trusted connection address only.
+ * Never trust client-controlled X-Forwarded-For / X-Real-IP — those are spoofable.
+ */
 export function clientIpFromRequest(requestLike: unknown): string {
-  const headers = readHeaders(requestLike)
-  const forwarded = headers['x-forwarded-for'] || headers['x-real-ip']
-  if (forwarded) {
-    const first = forwarded.split(',')[0]?.trim()
-    if (first) return first.slice(0, 128)
-  }
+  if (!requestLike || typeof requestLike !== 'object') return 'unknown'
 
-  if (
-    requestLike &&
-    typeof requestLike === 'object' &&
-    'socket' in requestLike &&
-    requestLike.socket &&
-    typeof requestLike.socket === 'object' &&
-    'remoteAddress' in requestLike.socket
-  ) {
-    const addr = (requestLike.socket as { remoteAddress?: string }).remoteAddress
-    if (addr) return addr
-  }
+  const fromSocket = remoteAddressOf(
+    'socket' in requestLike ? (requestLike as { socket?: unknown }).socket : undefined,
+  )
+  if (fromSocket) return fromSocket
+
+  // Older Node / some proxies expose connection.remoteAddress
+  const fromConnection = remoteAddressOf(
+    'connection' in requestLike
+      ? (requestLike as { connection?: unknown }).connection
+      : undefined,
+  )
+  if (fromConnection) return fromConnection
 
   return 'unknown'
 }
 
-function readHeaders(requestLike: unknown): Record<string, string> {
-  const out: Record<string, string> = {}
-  if (!requestLike || typeof requestLike !== 'object') return out
-
-  if ('headers' in requestLike && requestLike.headers) {
-    const h = requestLike.headers as
-      | Headers
-      | Record<string, string | string[] | undefined>
-      | { get?: (name: string) => string | null }
-
-    if (typeof (h as Headers).get === 'function') {
-      const get = (h as Headers).get.bind(h)
-      for (const name of ['x-forwarded-for', 'x-real-ip']) {
-        const v = get(name)
-        if (v) out[name] = v
-      }
-      return out
-    }
-
-    for (const [k, v] of Object.entries(h as Record<string, string | string[] | undefined>)) {
-      if (v == null) continue
-      out[k.toLowerCase()] = Array.isArray(v) ? v.join(',') : String(v)
-    }
-  }
-
-  return out
+function remoteAddressOf(sock: unknown): string | null {
+  if (!sock || typeof sock !== 'object') return null
+  if (!('remoteAddress' in sock)) return null
+  const addr = (sock as { remoteAddress?: unknown }).remoteAddress
+  if (typeof addr !== 'string' || !addr.trim()) return null
+  return addr.trim().slice(0, 128)
 }
 
 /** Test helper — clears buckets between tests / smoke runs. */
