@@ -1159,12 +1159,12 @@
     font-size: clamp(2.2rem, 12vw, 3rem);
   }
 
-  .topnav a:not(:last-of-type) {
-    display: none;
-  }
-
-  .topnav .lang-pill {
-    display: inline;
+  .topnav {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.45rem 0.85rem;
+    max-width: min(70%, 16rem);
+    font-size: 0.72rem;
   }
 }
 
