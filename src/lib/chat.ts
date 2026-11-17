@@ -59,6 +59,18 @@ export async function respondToUser(
       body: JSON.stringify({ messages: turns }),
     })
 
+    if (res.status === 429) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null
+      return {
+        id: `a-${Date.now()}`,
+        role: 'assistant',
+        text:
+          data?.error?.trim() ||
+          'Príliš veľa požiadaviek. Skús to znova o chvíľu.',
+        mode: 'fallback',
+      }
+    }
+
     if (!res.ok) {
       return localFallback(userText)
     }

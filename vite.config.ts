@@ -53,6 +53,7 @@ function chatApiPlugin(): Plugin {
           nodeRes.writeHead(status, {
             'Content-Type': 'application/json; charset=utf-8',
             'Cache-Control': 'private, no-store',
+            ...('error' in result ? result.headers : undefined),
           })
           nodeRes.end(JSON.stringify(payload))
         } catch {
