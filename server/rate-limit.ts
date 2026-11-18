@@ -94,8 +94,10 @@ export function checkRateLimit(
 }
 
 /**
- * Rate-limit key from the platform-trusted connection address only.
- * Never trust client-controlled X-Forwarded-For / X-Real-IP — those are spoofable.
+ * Rate-limit key from the platform-trusted connection address when available.
+ * On serverless Web Request (no socket), fall back to Cursor platform
+ * forwarding headers only — never trust a bare client-supplied IP alone
+ * without a platform hop marker.
  */
 export function clientIpFromRequest(requestLike: unknown): string {
   if (!requestLike || typeof requestLike !== 'object') return 'unknown'
@@ -113,7 +115,44 @@ export function clientIpFromRequest(requestLike: unknown): string {
   )
   if (fromConnection) return fromConnection
 
+  // Cursor Apps / Vercel edge: socket is absent; use first X-Forwarded-For hop
+  // only when the platform also set a forwarding fingerprint.
+  const headers = headersOf(requestLike)
+  if (headers) {
+    const vercelId =
+      headerGet(headers, 'x-vercel-id') ||
+      headerGet(headers, 'x-cursor-edge') ||
+      headerGet(headers, 'cf-ray')
+    const xff = headerGet(headers, 'x-forwarded-for')
+    if (vercelId && xff) {
+      const first = xff.split(',')[0]?.trim()
+      if (first) return first.slice(0, 128)
+    }
+  }
+
   return 'unknown'
+}
+
+function headersOf(requestLike: unknown): unknown {
+  if (!requestLike || typeof requestLike !== 'object') return null
+  if ('headers' in requestLike) return (requestLike as { headers: unknown }).headers
+  return null
+}
+
+function headerGet(headers: unknown, name: string): string | null {
+  if (!headers || typeof headers !== 'object') return null
+  if (typeof (headers as { get?: unknown }).get === 'function') {
+    const v = (headers as { get: (n: string) => string | null }).get(name)
+    return typeof v === 'string' && v.trim() ? v.trim() : null
+  }
+  const lower = name.toLowerCase()
+  const record = headers as Record<string, unknown>
+  const raw = record[lower] ?? record[name]
+  if (typeof raw === 'string' && raw.trim()) return raw.trim()
+  if (Array.isArray(raw) && typeof raw[0] === 'string' && raw[0].trim()) {
+    return raw[0].trim()
+  }
+  return null
 }
 
 function remoteAddressOf(sock: unknown): string | null {
