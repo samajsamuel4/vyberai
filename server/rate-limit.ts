@@ -21,8 +21,10 @@ type Bucket = {
 
 const buckets = new Map<string, Bucket>()
 
-/** Default: 20 chat POSTs / minute / key (IP or identity). */
-export const CHAT_RATE_LIMIT = 20
+/** General chat POSTs / minute / IP (fallback + LLM). */
+export const CHAT_RATE_LIMIT = 12
+/** Extra cap when a request may burn paid OpenAI. */
+export const CHAT_LLM_RATE_LIMIT = 6
 export const CHAT_RATE_WINDOW_MS = 60_000
 
 const MAX_BUCKETS = 5_000
