@@ -64,13 +64,16 @@ export async function handleChatApi(
   const limited = checkRateLimit(`ip:${ip}`, CHAT_RATE_LIMIT)
   if (!limited.ok) return rateLimitError(limited)
 
-  const messages = Array.isArray(body.messages) ? body.messages : null
-  if (!messages || messages.length === 0) {
+  const rawMessages = Array.isArray(body.messages) ? body.messages : null
+  if (!rawMessages || rawMessages.length === 0) {
     return { error: 'Chýbajú správy.', status: 400 }
   }
-  if (messages.length > 16) {
+  // Hard abuse cap only — do not 400 normal long chats (client sends greeting + turns).
+  if (rawMessages.length > 48) {
     return { error: 'Príliš veľa správ v histórii.', status: 400 }
   }
+  // Keep recent window; llm.sanitizeTurns also slices. Avoid silent client fallback.
+  const messages = rawMessages.slice(-24)
 
   let allowLlm = false
   if (hasOpenAiKey()) {
