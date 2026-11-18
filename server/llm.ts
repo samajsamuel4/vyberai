@@ -26,9 +26,36 @@ type LlmJson = {
 }
 
 const MAX_MESSAGE_CHARS = 2000
+/** Local/rule history (user turns for adviseUser). */
 const MAX_HISTORY = 12
+/** OpenAI: only recent *user* turns — never full assistant transcripts. */
+const MAX_OPENAI_USER_TURNS = 4
+const MAX_OPENAI_CHARS = 500
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions'
 const MODEL = 'gpt-4o-mini'
+
+/** Strip obvious PII-ish tokens before any third-party LLM call. */
+function redactForLlm(text: string): string {
+  return text
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[email]')
+    .replace(/\b(?:\+?\d[\d\s\-()]{7,}\d)\b/g, '[phone]')
+    .slice(0, MAX_OPENAI_CHARS)
+}
+
+/**
+ * Minimize data sent to OpenAI: user-only turns, short, redacted.
+ * Assistant replies (product tips, names) stay on-server.
+ */
+function historyForOpenAi(turns: ChatTurn[]): ChatTurn[] {
+  return turns
+    .filter((t) => t.role === 'user')
+    .slice(-MAX_OPENAI_USER_TURNS)
+    .map((t) => ({
+      role: 'user' as const,
+      text: redactForLlm(t.text),
+    }))
+    .filter((t) => t.text.length > 0)
+}
 
 function catalogForPrompt(): string {
   return getProductFeed()
@@ -139,10 +166,15 @@ export async function generateChatReply(
   }
 
   try {
+    const openAiTurns = historyForOpenAi(history)
+    if (openAiTurns.length === 0) {
+      return fallbackFromHistory(history)
+    }
+
     const messages = [
       { role: 'system' as const, content: systemPrompt() },
-      ...history.map((t) => ({
-        role: t.role as 'user' | 'assistant',
+      ...openAiTurns.map((t) => ({
+        role: 'user' as const,
         content: t.text,
       })),
     ]
