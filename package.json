@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && tsx scripts/write-spa-fallback.ts",
     "start": "tsx scripts/serve.ts",
     "lint": "oxlint",
-    "preview": "vite preview --host 0.0.0.0 --port 4173"
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "smoke:advise": "tsx scripts/smoke-advise.ts"
   },
   "dependencies": {
     "@fontsource/figtree": "^5.3.0",
