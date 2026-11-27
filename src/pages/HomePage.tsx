@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ChatPanel } from '../components/ChatPanel'
+import { HeroStage } from '../components/HeroStage'
 import { CATEGORY_LANDINGS } from '../data/landings'
 import {
   DEFAULT_DESCRIPTION,
@@ -49,6 +50,8 @@ export function HomePage() {
   return (
     <div className="page">
       <div className="atmosphere atmosphere-mock" aria-hidden="true">
+        <div className="atmosphere-orb atmosphere-orb-a" />
+        <div className="atmosphere-orb atmosphere-orb-b" />
         <div className="grain" />
       </div>
 
@@ -90,15 +93,8 @@ export function HomePage() {
           </div>
         </div>
 
-        <div className="hero-visual" aria-hidden="true">
-          <img
-            className="hero-devices"
-            src="/hero-devices.jpg"
-            alt=""
-            width={960}
-            height={540}
-            decoding="async"
-          />
+        <div className="hero-visual">
+          <HeroStage />
         </div>
       </main>
 
