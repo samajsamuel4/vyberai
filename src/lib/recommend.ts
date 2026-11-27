@@ -318,6 +318,14 @@ function intentIsActionable(intent: ParsedIntent): boolean {
   return intent.categories.length > 0
 }
 
+/** Budget, brand, or use-case — without these, category-only tips feel random. */
+function hasNarrowingSignal(intent: ParsedIntent): boolean {
+  if (intent.maxBudget != null || intent.minBudget != null) return true
+  if (intent.brands.length > 0) return true
+  if (intent.tags.length > 0) return true
+  return false
+}
+
 const USE_CASE_FOCUS_TAGS = [
   'gaming',
   'fotenie',
@@ -438,6 +446,10 @@ function clarifyingReply(intent: ParsedIntent): string {
   }
   if (intent.tags.length > 0 && intent.categories.length === 0) {
     return 'Aby som tipoval zmysluplne: akú kategóriu chceš (notebook / telefón / slúchadlá / …) a približný rozpočet?'
+  }
+  if (intent.categories.length > 0 && !hasNarrowingSignal(intent)) {
+    const cat = CATEGORY_LABELS[intent.categories[0]]
+    return `OK, ${cat}. Aby tipy neboli náhodné, doplň rozpočet alebo použitie — napr. „do 800 € na školu“, „na hry“, „ľahký na prácu“.`
   }
   return 'Povedz mi kategóriu a rozpočet — napr. „notebook do 800 € na školu“ alebo „slúchadlá s ANC do 150 €“. Bez toho by som tipoval naslepo.'
 }
@@ -645,7 +657,7 @@ export function adviseUser(
 ): AdviceResult {
   const intent = resolveIntentFromHistory(userMessage, priorUserTexts)
 
-  if (!intentIsActionable(intent)) {
+  if (!intentIsActionable(intent) || !hasNarrowingSignal(intent)) {
     return {
       kind: 'clarify',
       text: clarifyingReply(intent),

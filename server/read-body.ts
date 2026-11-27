@@ -57,3 +57,33 @@ export async function readJsonBodyCapped(
     throw new InvalidJsonError()
   }
 }
+
+/**
+ * Read JSON from a Web Fetch API Request (Cursor Apps / Vercel functions).
+ * Enforces the same byte cap as the Node path.
+ */
+export async function readJsonFromWebRequest(
+  request: Request,
+  maxBytes = CHAT_BODY_MAX_BYTES,
+): Promise<unknown> {
+  const declared = request.headers.get('content-length')
+  if (declared) {
+    const n = Number(declared)
+    if (Number.isFinite(n) && n > maxBytes) {
+      throw new BodyTooLargeError()
+    }
+  }
+
+  const buf = new Uint8Array(await request.arrayBuffer())
+  if (buf.byteLength > maxBytes) {
+    throw new BodyTooLargeError()
+  }
+
+  const raw = new TextDecoder('utf-8').decode(buf)
+  if (!raw.trim()) return {}
+  try {
+    return JSON.parse(raw) as unknown
+  } catch {
+    throw new InvalidJsonError()
+  }
+}

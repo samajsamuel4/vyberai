@@ -3,6 +3,8 @@ import { adviseUser } from '../src/lib/recommend'
 const cases = [
   'ahoj',
   'nieco lacne',
+  'notebook',
+  'telefón',
   'notebook do 800 na skolu',
   'Slúchadlá s ANC do 150 €',
   'Telefón s dobrým foťákom',
