@@ -140,8 +140,8 @@ export function HomePage() {
       <section className="categories" aria-label="Kategórie">
         <h2>Kategórie</h2>
         <p className="categories-lede">
-          Landing stránky s chatom priamo v kategórii — klikni a hneď dostaneš
-          tipy.
+          SEO landings s návodom, FAQ a chatom — notebooky, telefóny, slúchadlá
+          a ďalšie. Klikni na kategóriu a hneď dostaneš tipy podľa rozpočtu.
         </p>
         <ul className="category-grid">
           {CATEGORY_LANDINGS.map((l) => (

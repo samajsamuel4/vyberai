@@ -875,7 +875,8 @@
 }
 
 .categories,
-.landing-nav {
+.landing-nav,
+.landing-related {
   position: relative;
   z-index: 1;
   width: min(1120px, calc(100% - 2rem));
@@ -888,6 +889,69 @@
   font-size: clamp(1.35rem, 3vw, 1.75rem);
   letter-spacing: -0.03em;
   margin: 0 0 0.45rem;
+}
+
+.landing-breadcrumb {
+  margin: 0 0 0.85rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.landing-breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.landing-breadcrumb a:hover {
+  color: var(--text);
+}
+
+.landing-body {
+  margin: 0.65rem 0 0;
+  max-width: 40rem;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 0.98rem;
+}
+
+.landing-related-lede {
+  margin: 0 0 0.85rem;
+  color: var(--muted);
+  max-width: 36rem;
+  font-size: 0.95rem;
+}
+
+.related-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.related-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 0;
+  text-decoration: none;
+  color: var(--text);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.related-link strong {
+  font-size: 0.95rem;
+}
+
+.related-link span {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.related-link:hover {
+  border-color: var(--accent);
 }
 
 .categories-lede {

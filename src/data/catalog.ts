@@ -111,6 +111,19 @@ export const CATALOG: Product[] = [
     alzaPath: 'apple-macbook-air-13-m2',
   },
   {
+    id: 'ph-samsung-a16',
+    name: 'Samsung Galaxy A16 5G 128 GB',
+    brand: 'Samsung',
+    category: 'telefon',
+    priceEur: 249,
+    summary: 'Lacný denný Android s veľkým displejom a slušnou batériou.',
+    description:
+      'Galaxy A16 5G je budget tip do 300 €: veľký displej, 5G, 128 GB a výdrž na celý deň. Foťák stačí na sociálne siete a denné fotky; nečakaj flagship zoom. Vhodný, ak chceš spoľahlivý telefón bez prémiovej ceny.',
+    specs: ['6,7" displej', '5G', '128 GB', 'batéria na celý deň', 'Android'],
+    tags: ['android', 'budget', 'baterie', '5g', 'student'],
+    alzaPath: 'samsung-galaxy-a16-5g-128gb',
+  },
+  {
     id: 'ph-samsung-a55',
     name: 'Samsung Galaxy A55 5G 128 GB',
     brand: 'Samsung',

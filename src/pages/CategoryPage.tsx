@@ -2,8 +2,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
 import { ChatPanel } from '../components/ChatPanel'
 import { CATALOG, CATEGORY_LABELS } from '../data/catalog'
-import { CATEGORY_LANDINGS, getLandingBySlug } from '../data/landings'
-import { applyFaqJsonLd, applyPageMeta, clearFaqJsonLd } from '../lib/seo'
+import {
+  CATEGORY_LANDINGS,
+  getLandingBySlug,
+  relatedLandings,
+} from '../data/landings'
+import {
+  applyBreadcrumbJsonLd,
+  applyFaqJsonLd,
+  applyPageMeta,
+  clearBreadcrumbJsonLd,
+  clearFaqJsonLd,
+} from '../lib/seo'
 import { trackPageView } from '../lib/tracking'
 
 function formatPrice(eur: number): string {
@@ -60,8 +70,12 @@ export function CategoryPage() {
       path,
     })
     applyFaqJsonLd(path, landing.faq)
+    applyBreadcrumbJsonLd(path, landing.title)
     trackPageView(path)
-    return () => clearFaqJsonLd()
+    return () => {
+      clearFaqJsonLd()
+      clearBreadcrumbJsonLd()
+    }
   }, [landing])
 
   useEffect(() => {
@@ -77,6 +91,8 @@ export function CategoryPage() {
   }, [landing, searchParams, setSearchParams])
 
   if (!landing) return <Navigate to="/" replace />
+
+  const related = relatedLandings(landing)
 
   function startWithPrompt(prompt: string) {
     if (chatUi.busy) return
@@ -105,10 +121,16 @@ export function CategoryPage() {
       </header>
 
       <main className="landing">
+        <nav className="landing-breadcrumb" aria-label="Navigácia">
+          <Link to="/">VyberAI</Link>
+          <span aria-hidden="true"> / </span>
+          <span>{landing.title}</span>
+        </nav>
         <p className="landing-brand">VyberAI</p>
         <p className="landing-kicker">{landing.title}</p>
         <h1 className="landing-headline">{landing.headline}</h1>
         <p className="landing-lede">{landing.lede}</p>
+        <p className="landing-body">{landing.body}</p>
 
         <div className="cta-row">
           <button
@@ -231,8 +253,28 @@ export function CategoryPage() {
         </section>
       </main>
 
-      <nav className="landing-nav" aria-label="Ďalšie kategórie">
-        <p className="landing-nav-title">Ďalšie kategórie</p>
+      {related.length > 0 && (
+        <nav className="landing-related" aria-label="Súvisiace kategórie">
+          <p className="landing-nav-title">Súvisiace kategórie</p>
+          <p className="landing-related-lede">
+            Často sa kupuje spolu — tipy v chate vieš spojiť aj naprieč
+            kategóriami.
+          </p>
+          <ul className="related-list">
+            {related.map((l) => (
+              <li key={l.slug}>
+                <Link className="related-link" to={`/${l.slug}`}>
+                  <strong>{l.title}</strong>
+                  <span>{l.headline}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
+      <nav className="landing-nav" aria-label="Všetky kategórie">
+        <p className="landing-nav-title">Všetky kategórie</p>
         <ul className="category-grid">
           {CATEGORY_LANDINGS.filter((l) => l.slug !== landing.slug).map(
             (l) => (
