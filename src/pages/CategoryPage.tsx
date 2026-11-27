@@ -273,7 +273,7 @@ export function CategoryPage() {
         </nav>
       )}
 
-      <nav className="landing-nav" aria-label="Ďalšie kategórie">
+      <nav className="landing-nav" aria-label="Všetky kategórie">
         <p className="landing-nav-title">Všetky kategórie</p>
         <ul className="category-grid">
           {CATEGORY_LANDINGS.filter((l) => l.slug !== landing.slug).map(
