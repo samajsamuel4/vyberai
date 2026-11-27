@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && tsx scripts/write-spa-fallback.ts",
+    "build": "tsc -b && tsx scripts/write-sitemap.ts && vite build && tsx scripts/write-spa-fallback.ts",
     "start": "tsx scripts/serve.ts",
     "lint": "oxlint",
     "preview": "vite preview --host 0.0.0.0 --port 4173",

@@ -202,11 +202,20 @@ export function ChatPanel({
   async function shareRecommendations(query: string) {
     const url = buildShareUrl(shareBasePath, query)
     trackShareClick(shareBasePath)
+    const picks = lastRecs?.recommendations ?? []
+    const pickNames = picks
+      .slice(0, 3)
+      .map((r) => r.product.name)
+      .join(' · ')
+    const shareTitle = `VyberAI: ${query.slice(0, 80)}`
+    const shareText = pickNames
+      ? `Tipy z VyberAI na „${query}“: ${pickNames}. Otvor odkaz a porovnaj.`
+      : `Tipy z VyberAI na „${query}“. Otvor odkaz a spusti chat.`
     try {
       if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share({
-          title: 'VyberAI tipy',
-          text: `Pozri tipy na: ${query}`,
+          title: shareTitle,
+          text: shareText,
           url,
         })
         setShareStatus('Odkaz odoslaný')

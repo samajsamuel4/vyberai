@@ -8,6 +8,9 @@ export const DEFAULT_DESCRIPTION =
   'VyberAI — slovenský AI chat na výber elektroniky s affiliate odkazmi na Alza.sk. Napíš rozpočet a použitie, dostaneš 1–3 tipy.'
 
 export const OG_IMAGE_PATH = '/og.png'
+export const OG_IMAGE_WIDTH = 1200
+export const OG_IMAGE_HEIGHT = 630
+export const OG_IMAGE_ALT = 'VyberAI — AI výber elektroniky s tipmi na Alza.sk'
 
 export type PageMeta = {
   title: string
@@ -72,11 +75,15 @@ export function applyPageMeta(meta: PageMeta): void {
   ensureMeta('property', 'og:description', meta.description)
   ensureMeta('property', 'og:url', url)
   ensureMeta('property', 'og:image', image)
+  ensureMeta('property', 'og:image:alt', OG_IMAGE_ALT)
+  ensureMeta('property', 'og:image:width', String(OG_IMAGE_WIDTH))
+  ensureMeta('property', 'og:image:height', String(OG_IMAGE_HEIGHT))
 
   ensureMeta('name', 'twitter:card', 'summary_large_image')
   ensureMeta('name', 'twitter:title', meta.title)
   ensureMeta('name', 'twitter:description', meta.description)
   ensureMeta('name', 'twitter:image', image)
+  ensureMeta('name', 'twitter:image:alt', OG_IMAGE_ALT)
 }
 
 export function applyHomeJsonLd(): void {
@@ -117,6 +124,36 @@ export function applyFaqJsonLd(
 
 export function clearFaqJsonLd(): void {
   document.getElementById('vyberai-jsonld-faq')?.remove()
+}
+
+export function applyBreadcrumbJsonLd(
+  path: string,
+  title: string,
+): void {
+  const safe = sanitizeMetaPath(path)
+  if (safe === '/') return
+  ensureJsonLd('vyberai-jsonld-breadcrumb', {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'VyberAI',
+        item: `${SITE_ORIGIN}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: title,
+        item: `${SITE_ORIGIN}${safe}`,
+      },
+    ],
+  })
+}
+
+export function clearBreadcrumbJsonLd(): void {
+  document.getElementById('vyberai-jsonld-breadcrumb')?.remove()
 }
 
 /** Escape text for safe HTML attribute / text node injection on the server. */
@@ -164,10 +201,14 @@ export function buildInjectedHead(meta: PageMeta): string {
     `<meta property="og:description" content="${description}" />`,
     `<meta property="og:url" content="${url}" />`,
     `<meta property="og:image" content="${image}" />`,
+    `<meta property="og:image:alt" content="${escapeHtml(OG_IMAGE_ALT)}" />`,
+    `<meta property="og:image:width" content="${OG_IMAGE_WIDTH}" />`,
+    `<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${title}" />`,
     `<meta name="twitter:description" content="${description}" />`,
     `<meta name="twitter:image" content="${image}" />`,
+    `<meta name="twitter:image:alt" content="${escapeHtml(OG_IMAGE_ALT)}" />`,
   ].join('\n    ')
 }
 
