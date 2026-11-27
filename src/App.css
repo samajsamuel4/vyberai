@@ -1038,7 +1038,11 @@
   display: grid;
   gap: 0.55rem;
   grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+}
+
+.related-list > li {
   perspective: 900px;
+  transform-style: preserve-3d;
 }
 
 .related-link {
@@ -1085,7 +1089,11 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
   gap: 0.65rem;
+}
+
+.category-grid > li {
   perspective: 900px;
+  transform-style: preserve-3d;
 }
 
 .category-link {
