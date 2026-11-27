@@ -464,16 +464,19 @@ function formatReviewCountSk(count: number): string {
 
 /** Themes that overlap the user's use-case / tokens (normalized). */
 function matchingReviewThemes(product: Product, intent: ParsedIntent): string[] {
-  const needles = [
-    ...intent.tags,
-    ...intent.tokens,
-    ...intent.brands,
-  ].map((t) => normalize(t))
+  // Skip short needles — avoids `lg`∈`google`, `s` from "S Pen", `2` from "2 TB"
+  const needles = [...intent.tags, ...intent.tokens, ...intent.brands]
+    .map((t) => normalize(t))
+    .filter((t) => t.length >= 3)
   if (needles.length === 0) return product.reviews.themes.slice(0, 2)
 
   const hits = product.reviews.themes.filter((theme) => {
     const n = normalize(theme)
-    return needles.some((needle) => n.includes(needle) || needle.includes(n.split(' ')[0]!))
+    const words = n.split(/[^a-z0-9]+/).filter((w) => w.length >= 3)
+    return needles.some(
+      (needle) =>
+        n.includes(needle) || words.some((w) => w === needle || w.startsWith(needle)),
+    )
   })
   if (hits.length > 0) return hits.slice(0, 2)
   return product.reviews.themes.slice(0, 2)
@@ -626,7 +629,8 @@ function scoreProduct(product: Product, intent: ParsedIntent): number {
 
   const themeHay = normalize(themes.join(' '))
   for (const tag of intent.tags) {
-    if (themeHay.includes(normalize(tag))) score += 6
+    const nTag = normalize(tag)
+    if (nTag.length >= 3 && themeHay.includes(nTag)) score += 6
   }
   for (const token of intent.tokens) {
     if (token.length >= 4 && themeHay.includes(token)) score += 3
