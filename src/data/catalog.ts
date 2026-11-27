@@ -10,6 +10,16 @@ export type ProductCategory =
   | 'tv'
   | 'herna-konzola'
 
+/** Mock Alza-style review signals for rule-based advice (no live scrape). */
+export type ProductReviews = {
+  /** Average star rating 1–5 */
+  rating: number
+  /** Number of customer reviews */
+  count: number
+  /** Short Slovak themes / pros often cited in reviews */
+  themes: string[]
+}
+
 export type Product = {
   id: string
   name: string
@@ -25,6 +35,7 @@ export type Product = {
   tags: string[]
   /** Path segment after alza.sk/ */
   alzaPath: string
+  reviews: ProductReviews
 }
 
 /**
@@ -43,7 +54,12 @@ export const CATALOG: Product[] = [
       'Acer Aspire 5 je klasická voľba na štúdium a bežnú prácu. 15,6" Full HD IPS displej, AMD Ryzen 5, 16 GB RAM a 512 GB SSD zvládnu Word, prehliadač aj online výučbu. Výdrž batérie približne celý školský deň, Wi‑Fi 6 a numerická klávesnica.',
     specs: ['15,6" FHD IPS', 'Ryzen 5', '16 GB RAM', '512 GB SSD', 'Wi‑Fi 6'],
     tags: ['skola', 'office', 'student', 'wifi', 'budget'],
-    alzaPath: 'acer-aspire-5-15-ryzen5',
+        reviews: {
+      rating: 4.4,
+      count: 2140,
+      themes: ['spoľahlivosť na školu', 'dobrá cena', 'batéria na celý deň'],
+    },
+alzaPath: 'acer-aspire-5-15-ryzen5',
   },
   {
     id: 'nb-lenovo-ideapad',
@@ -56,7 +72,12 @@ export const CATALOG: Product[] = [
       'IdeaPad Slim 3 spája tenký profil s Intel Core i5, 16 GB RAM a 512 GB SSD. Displej 15,6" Full HD je vhodný na poznámky aj streaming. Tichý chod a výdrž batérie okolo 8–10 hodín ho robia vhodným na školu aj home office.',
     specs: ['15,6" FHD', 'Core i5', '16 GB RAM', '512 GB SSD', '~9 h batéria'],
     tags: ['skola', 'student', 'baterie', 'lehky', 'office'],
-    alzaPath: 'lenovo-ideapad-slim-3-15',
+        reviews: {
+      rating: 4.5,
+      count: 1680,
+      themes: ['tenký a ľahký', 'tichý chod', 'výdrž batérie'],
+    },
+alzaPath: 'lenovo-ideapad-slim-3-15',
   },
   {
     id: 'nb-asus-vivobook',
@@ -69,7 +90,12 @@ export const CATALOG: Product[] = [
       'Vivobook 16 ponúka priestranný 16" displej, plnohodnotnú klávesnicu a výkon na multitasking (office + video + prehliadač). SSD a 16 GB RAM stačia na štúdium aj ľahšiu tvorbu obsahu. Vhodný, ak preferuješ väčšiu pracovnú plochu.',
     specs: ['16" FHD', '16 GB RAM', '512 GB SSD', 'full-size klávesnica'],
     tags: ['skola', 'office', 'velky-displej', 'student'],
-    alzaPath: 'asus-vivobook-16',
+        reviews: {
+      rating: 4.3,
+      count: 980,
+      themes: ['veľký displej', 'pohodlná klávesnica', 'multitasking'],
+    },
+alzaPath: 'asus-vivobook-16',
   },
   {
     id: 'nb-dell-inspiron14',
@@ -82,7 +108,12 @@ export const CATALOG: Product[] = [
       'Dell Inspiron 14 je zameraný na prácu z domu: kvalitná klávesnica, 14" displej, spoľahlivý chladiaci profil. 16 GB RAM a SSD zabezpečia rýchle spustenie Windows a beh Teams/Zoom bez zbytočného lagovania.',
     specs: ['14" FHD', '16 GB RAM', '512 GB SSD', 'Wi‑Fi 6'],
     tags: ['office', 'home-office', 'student', 'wifi'],
-    alzaPath: 'dell-inspiron-14',
+        reviews: {
+      rating: 4.4,
+      count: 1210,
+      themes: ['kvalitná klávesnica', 'home office', 'spoľahlivý chladič'],
+    },
+alzaPath: 'dell-inspiron-14',
   },
   {
     id: 'nb-hp-pavilion-gaming',
@@ -95,7 +126,12 @@ export const CATALOG: Product[] = [
       'Pavilion Gaming 15 prináša dedikovanú NVIDIA grafiku, 144 Hz displej a chladenie pripravené na dlhšie herné session. Vhodný aj na strih videa a 3D školské projekty. Hlučnejší a ťažší než ultrabooky — za to dostaneš výkon.',
     specs: ['15,6" 144 Hz', 'RTX grafika', '16 GB RAM', '512 GB SSD'],
     tags: ['gaming', 'hry', 'grafika', 'vykon', 'rtx'],
-    alzaPath: 'hp-pavilion-gaming-15',
+        reviews: {
+      rating: 4.2,
+      count: 1560,
+      themes: ['herný výkon', '144 Hz displej', 'zvládne strih'],
+    },
+alzaPath: 'hp-pavilion-gaming-15',
   },
   {
     id: 'nb-macbook-air-m2',
@@ -108,7 +144,12 @@ export const CATALOG: Product[] = [
       'MacBook Air M2 je bezventilátorový, veľmi tichý a s výdržou batérie často cez 15 hodín. Displej Liquid Retina, čip M2 a 256/512 GB SSD. Ideálny do ekosystému iPhone/iPad. Vyššia cena, ale špičková prenosnosť a softvérová podpora.',
     specs: ['13,6" Liquid Retina', 'Apple M2', '8+ GB RAM', 'bez ventilátora', 'dlhá batéria'],
     tags: ['premium', 'apple', 'baterie', 'student', 'office', 'tichy', 'lehky'],
-    alzaPath: 'apple-macbook-air-13-m2',
+        reviews: {
+      rating: 4.8,
+      count: 4320,
+      themes: ['výdrž batérie', 'tichý chod', 'prenosnosť'],
+    },
+alzaPath: 'apple-macbook-air-13-m2',
   },
   {
     id: 'ph-samsung-a16',
@@ -121,7 +162,12 @@ export const CATALOG: Product[] = [
       'Galaxy A16 5G je budget tip do 300 €: veľký displej, 5G, 128 GB a výdrž na celý deň. Foťák stačí na sociálne siete a denné fotky; nečakaj flagship zoom. Vhodný, ak chceš spoľahlivý telefón bez prémiovej ceny.',
     specs: ['6,7" displej', '5G', '128 GB', 'batéria na celý deň', 'Android'],
     tags: ['android', 'budget', 'baterie', '5g', 'student'],
-    alzaPath: 'samsung-galaxy-a16-5g-128gb',
+        reviews: {
+      rating: 4.3,
+      count: 2890,
+      themes: ['cena/výkon', 'veľký displej', 'batéria na deň'],
+    },
+alzaPath: 'samsung-galaxy-a16-5g-128gb',
   },
   {
     id: 'ph-samsung-a55',
@@ -134,7 +180,12 @@ export const CATALOG: Product[] = [
       'Galaxy A55 ponúka AMOLED 120 Hz, trojitý foťák s OIS, IP67 a prísľub dlhých aktualizácií. 5G, 8 GB RAM a 128 GB úložiska stačia na bežné používanie. Silná voľba, ak chceš Samsung bez flagship ceny.',
     specs: ['6,6" AMOLED 120 Hz', '50 Mpx OIS', 'IP67', '5G', '8/128 GB'],
     tags: ['fotenie', 'android', 'midrange', 'baterie', '5g'],
-    alzaPath: 'samsung-galaxy-a55-5g-128gb',
+        reviews: {
+      rating: 4.5,
+      count: 3120,
+      themes: ['AMOLED', 'dobrý foťák', 'dlhá softvérová podpora'],
+    },
+alzaPath: 'samsung-galaxy-a55-5g-128gb',
   },
   {
     id: 'ph-xiaomi-14t',
@@ -147,7 +198,12 @@ export const CATALOG: Product[] = [
       'Xiaomi 14T s Leica optikou cieľi na foto nadšencov v mid-premium triede. Silný čipset, rýchle nabíjanie, AMOLED a 256 GB úložiska. Dobrá voľba, ak chceš foto výkon blízko vyššej triedy bez 800+ €.',
     specs: ['Leica foťák', 'AMOLED', 'rýchle nabíjanie', '256 GB', '5G'],
     tags: ['fotenie', 'android', 'vykon', 'kamera', '5g'],
-    alzaPath: 'xiaomi-14t-256gb',
+        reviews: {
+      rating: 4.6,
+      count: 1870,
+      themes: ['Leica foťák', 'rýchle nabíjanie', 'výkon'],
+    },
+alzaPath: 'xiaomi-14t-256gb',
   },
   {
     id: 'ph-google-pixel8a',
@@ -160,7 +216,12 @@ export const CATALOG: Product[] = [
       'Pixel 8a exceluje vo fotkách (najmä v noci) a AI funkciách Google. Čistý Android, dlhé aktualizácie, Tensor čip. Kompaktnejší telefón vhodný, ak preferuješ softvér a kameru pred herným výkonom.',
     specs: ['OLED 120 Hz', 'Google Tensor', 'výborný nočný foto režim', '7 rokov updatov'],
     tags: ['fotenie', 'android', 'ai', 'kamera', 'budget'],
-    alzaPath: 'google-pixel-8a-128gb',
+        reviews: {
+      rating: 4.7,
+      count: 2450,
+      themes: ['nočné fotky', 'čistý Android', 'AI funkcie'],
+    },
+alzaPath: 'google-pixel-8a-128gb',
   },
   {
     id: 'ph-iphone-15',
@@ -173,7 +234,12 @@ export const CATALOG: Product[] = [
       'iPhone 15 prináša USB-C, Dynamický ostrov a čip A16. Foťák zvládne bežné aj slabšie svetlo, iOS drží hodnotu a podporu dlhé roky. Prémiová voľba do Apple ekosystému (AirPods, Mac, Watch).',
     specs: ['6,1" OLED', 'A16 Bionic', 'USB-C', '48 Mpx', '128 GB'],
     tags: ['apple', 'ios', 'premium', 'fotenie', '5g'],
-    alzaPath: 'apple-iphone-15-128gb',
+        reviews: {
+      rating: 4.8,
+      count: 5610,
+      themes: ['iOS ekosystém', 'spoľahlivý foťák', 'dlhá podpora'],
+    },
+alzaPath: 'apple-iphone-15-128gb',
   },
   {
     id: 'hp-sony-wh1000xm5',
@@ -186,7 +252,12 @@ export const CATALOG: Product[] = [
       'WH-1000XM5 sú referenčné ANC slúchadlá: výborné potlačenie hluku v lietadle/vlaku, komfort na dlhé nosenie, LDAC a appka Headphones Connect. Cena je vyššia — za to dostaneš top ANC a zvuk.',
     specs: ['ANC', 'Bluetooth', 'až 30 h', 'multipoint', 'USB-C'],
     tags: ['anc', 'cestovanie', 'hudba', 'bezdratove', 'premium'],
-    alzaPath: 'sony-wh-1000xm5',
+        reviews: {
+      rating: 4.7,
+      count: 4980,
+      themes: ['špičkové ANC', 'komfort na cesty', 'kvalita zvuku'],
+    },
+alzaPath: 'sony-wh-1000xm5',
   },
   {
     id: 'hp-apple-airpods-pro2',
@@ -199,7 +270,12 @@ export const CATALOG: Product[] = [
       'AirPods Pro 2 majú silné ANC, Adaptive Audio a bezproblémové párovanie v Apple ekosystéme. USB-C puzdro, priestorový zvuk. Najlepší zážitok s iPhonom; na Androide fungujú, ale bez plnej funkčnosti.',
     specs: ['ANC', 'Adaptive Audio', 'USB-C puzdro', 'IP54', '~6 h na nabitie'],
     tags: ['anc', 'apple', 'sport', 'bezdratove', 'ipad'],
-    alzaPath: 'apple-airpods-pro-2-usb-c',
+        reviews: {
+      rating: 4.7,
+      count: 6720,
+      themes: ['ANC', 'pohodlie', 'párovanie s iPhonom'],
+    },
+alzaPath: 'apple-airpods-pro-2-usb-c',
   },
   {
     id: 'hp-jbl-tune770',
@@ -212,7 +288,12 @@ export const CATALOG: Product[] = [
       'Tune 770NC dávajú JBL zvuk a aktívne ANC za priateľskú cenu. Dlhá výdrž, folding dizajn do tašky. Nie sú na úrovni Sony XM5, ale na školu, MHD a denné používanie stačia s prehľadom.',
     specs: ['ANC', 'Bluetooth 5.3', 'až 70 h', 'sklápacie'],
     tags: ['anc', 'budget', 'hudba', 'bezdratove', 'student', 'cestovanie'],
-    alzaPath: 'jbl-tune-770nc',
+        reviews: {
+      rating: 4.4,
+      count: 3340,
+      themes: ['ANC za dobrú cenu', 'dlhá výdrž', 'JBL zvuk'],
+    },
+alzaPath: 'jbl-tune-770nc',
   },
   {
     id: 'hp-nothing-ear',
@@ -225,7 +306,12 @@ export const CATALOG: Product[] = [
       'Nothing Ear (a) kombinujú priesvitný dizajn, slušné ANC a čistý zvuk za ~100 €. Appka na EQ, dobrá výdrž. Alternatíva k drahším štupľom, ak nepotrebuješ Apple ekosystém.',
     specs: ['ANC', 'Bluetooth', 'EQ v appke', 'USB-C', 'ľahké'],
     tags: ['anc', 'budget', 'hudba', 'bezdratove', 'android', 'sport'],
-    alzaPath: 'nothing-ear-a',
+        reviews: {
+      rating: 4.5,
+      count: 1560,
+      themes: ['štýlový dizajn', 'slušné ANC', 'EQ v appke'],
+    },
+alzaPath: 'nothing-ear-a',
   },
   {
     id: 'mon-dell-s2722qc',
@@ -238,7 +324,12 @@ export const CATALOG: Product[] = [
       'S2722QC je 27" 4K IPS s USB-C (napájanie notebooku + obraz). Vhodný na home office, tabuľky, dizajn a čítanie textu. Tenké rámy, dobré továrenské farby pre bežnú prácu.',
     specs: ['27" 4K IPS', 'USB-C 65 W', '99% sRGB', 'HDMI'],
     tags: ['office', '4k', 'usb-c', 'home-office', 'dizajn'],
-    alzaPath: 'dell-s2722qc-27',
+        reviews: {
+      rating: 4.6,
+      count: 890,
+      themes: ['ostrý 4K text', 'USB-C napájanie', 'home office'],
+    },
+alzaPath: 'dell-s2722qc-27',
   },
   {
     id: 'mon-lg-ultragear',
@@ -251,7 +342,12 @@ export const CATALOG: Product[] = [
       'UltraGear 27" s 165 Hz a 1 ms odozvou je stavaný na FPS/esport. IPS panel, G-SYNC Compatible / FreeSync. Ak hľadáš herný monitor do 250–300 €, je to silný kandidát.',
     specs: ['27" IPS', '165 Hz', '1 ms', 'FreeSync / G-SYNC Comp.'],
     tags: ['gaming', 'hry', '165hz', 'ips'],
-    alzaPath: 'lg-ultragear-27-165hz',
+        reviews: {
+      rating: 4.5,
+      count: 2100,
+      themes: ['plynulý 165 Hz', 'nízka odozva', 'cena/výkon'],
+    },
+alzaPath: 'lg-ultragear-27-165hz',
   },
   {
     id: 'mon-samsung-odyssey-g5',
@@ -264,7 +360,12 @@ export const CATALOG: Product[] = [
       'Odyssey G5 32" ponúka QHD, 165 Hz a 1000R zakrivenie pre pohlcujúce hranie. Dobrá voľba, ak chceš väčšiu plochu než 27" bez skoku na OLED ceny.',
     specs: ['32" QHD', '165 Hz', '1000R curve', 'FreeSync'],
     tags: ['gaming', 'hry', 'qhd', '165hz'],
-    alzaPath: 'samsung-odyssey-g5-32',
+        reviews: {
+      rating: 4.4,
+      count: 1420,
+      themes: ['veľká plocha', 'zakrivenie', 'QHD hranie'],
+    },
+alzaPath: 'samsung-odyssey-g5-32',
   },
   {
     id: 'mon-benq-gw2785tc',
@@ -277,7 +378,12 @@ export const CATALOG: Product[] = [
       'GW2785TC je stavaný na home office: USB-C, vstavaný noise-reducing mikrofón, Eye-Care technológie a Full HD/QHD podľa konfigurácie. Ideálny na Zoom a dlhé čítanie dokumentov.',
     specs: ['27"', 'USB-C', 'Eye-Care', 'repro + mic'],
     tags: ['office', 'usb-c', 'home-office', 'zoom'],
-    alzaPath: 'benq-gw2785tc-27',
+        reviews: {
+      rating: 4.5,
+      count: 640,
+      themes: ['Eye-Care', 'USB-C', 'Zoom / office'],
+    },
+alzaPath: 'benq-gw2785tc-27',
   },
   {
     id: 'tab-ipad-a16',
@@ -290,7 +396,12 @@ export const CATALOG: Product[] = [
       'Základný iPad s čipom A16 zvládne poznámky (Apple Pencil), streaming, prehliadanie a školské appky. Displej 11", USB-C, dlhá podpora iPadOS. Najlepší pomer cena/výkon v Apple tabletoch.',
     specs: ['11" Liquid Retina', 'A16', 'USB-C', 'Apple Pencil podpora'],
     tags: ['skola', 'poznamky', 'apple', 'streaming', 'student'],
-    alzaPath: 'apple-ipad-11-a16-128gb',
+        reviews: {
+      rating: 4.7,
+      count: 2780,
+      themes: ['poznámky s Pencil', 'výdrž', 'appky na školu'],
+    },
+alzaPath: 'apple-ipad-11-a16-128gb',
   },
   {
     id: 'tab-samsung-s9fe',
@@ -303,7 +414,12 @@ export const CATALOG: Product[] = [
       'Tab S9 FE prichádza s S Pen v balení, IP68 a AMOLED/LCD podľa konfigurácie. Vhodný na poznámky, kreslenie a multitasking v DeX. Dobrá Android alternatíva k iPadu.',
     specs: ['S Pen v balení', 'IP68', 'DeX', 'dlhá podpora One UI'],
     tags: ['skola', 'poznamky', 'pero', 'android', 'kreslenie'],
-    alzaPath: 'samsung-galaxy-tab-s9-fe',
+        reviews: {
+      rating: 4.5,
+      count: 1340,
+      themes: ['S Pen v balení', 'poznámky', 'DeX'],
+    },
+alzaPath: 'samsung-galaxy-tab-s9-fe',
   },
   {
     id: 'tab-lenovo-p11',
@@ -316,7 +432,12 @@ export const CATALOG: Product[] = [
       'Tab P11 Pro ponúka OLED displej, štyri reproduktory a slušnú výdrž. Vhodný na Netflix, poznámky a študentské PDF. Lacnejšia cesta než iPad, ak nepotrebuješ Apple appky.',
     specs: ['OLED', '4 repro', 'USB-C', 'Android'],
     tags: ['streaming', 'skola', 'android', 'budget'],
-    alzaPath: 'lenovo-tab-p11-pro-gen2',
+        reviews: {
+      rating: 4.2,
+      count: 760,
+      themes: ['OLED streaming', 'cena', 'reproduktory'],
+    },
+alzaPath: 'lenovo-tab-p11-pro-gen2',
   },
   {
     id: 'tab-xiaomi-pad6',
@@ -329,7 +450,12 @@ export const CATALOG: Product[] = [
       'Pad 6 dáva plynulý 144 Hz displej a silný pomer cena/výkon. Dobrá voľba na školu, prehliadanie a streaming, ak chceš ušetriť oproti iPadu.',
     specs: ['11" 144 Hz', '128 GB', 'Dolby Vision', 'USB-C'],
     tags: ['skola', 'student', 'streaming', 'budget', 'android'],
-    alzaPath: 'xiaomi-pad-6-128gb',
+        reviews: {
+      rating: 4.5,
+      count: 1980,
+      themes: ['144 Hz plynulosť', 'cena/výkon', 'škola a média'],
+    },
+alzaPath: 'xiaomi-pad-6-128gb',
   },
   {
     id: 'kb-logitech-mx-keys',
@@ -342,7 +468,12 @@ export const CATALOG: Product[] = [
       'MX Keys S je tichá, podsvietená klávesnica s Logi Bolt/Bluetooth a Easy-Switch medzi 3 zariadeniami. Výborná na home office a písanie celý deň. Funguje s Windows aj macOS.',
     specs: ['bezdrôtová', 'podsvietenie', 'Easy-Switch', 'USB-C nabíjanie'],
     tags: ['office', 'bezdratove', 'ticha', 'home-office'],
-    alzaPath: 'logitech-mx-keys-s',
+        reviews: {
+      rating: 4.7,
+      count: 3560,
+      themes: ['tiché písanie', 'multi-device', 'podsvietenie'],
+    },
+alzaPath: 'logitech-mx-keys-s',
   },
   {
     id: 'kb-keychron-k2',
@@ -355,7 +486,12 @@ export const CATALOG: Product[] = [
       'Keychron K2 je 75% mechanická klávesnica s Bluetooth + káblom, výmennými switchmi a layoutom vhodným pre Mac aj Windows. Spokojnosť pri písaní s haptickým feedbackom; hlasnejšia než membránové klávesnice.',
     specs: ['75% layout', 'Bluetooth + kabel', 'hot-swap (verzie)', 'Mac/Win'],
     tags: ['office', 'bezdratove', 'mechanicka', 'budget'],
-    alzaPath: 'keychron-k2-wireless',
+        reviews: {
+      rating: 4.6,
+      count: 2210,
+      themes: ['mechanický feeling', 'Mac/Win layout', 'Bluetooth'],
+    },
+alzaPath: 'keychron-k2-wireless',
   },
   {
     id: 'kb-apple-magic',
@@ -368,7 +504,12 @@ export const CATALOG: Product[] = [
       'Magic Keyboard je tenká, tichá klávesnica s nabíjaním Lightning/USB-C podľa generácie. Najlepší feeling v macOS ekosystéme; menej vhodná, ak často striedaš Windows PC.',
     specs: ['scissor mechanizmus', 'nabíjanie', 'macOS optimalizácia'],
     tags: ['office', 'apple', 'mac', 'ticha', 'bezdratove'],
-    alzaPath: 'apple-magic-keyboard',
+        reviews: {
+      rating: 4.5,
+      count: 1890,
+      themes: ['macOS feeling', 'tichý chod', 'tenký profil'],
+    },
+alzaPath: 'apple-magic-keyboard',
   },
   {
     id: 'kb-logitech-pebble',
@@ -381,7 +522,12 @@ export const CATALOG: Product[] = [
       'Pebble Keys 2 je lacná, tichá a multi-device klávesnica na cestovanie a kaviarenské písanie. Nie je to MX Keys, ale do 40 € výborný pomer.',
     specs: ['Bluetooth', 'Easy-Switch', 'tiché klávesy', 'kompakt'],
     tags: ['office', 'budget', 'bezdratove', 'ticha', 'cestovanie'],
-    alzaPath: 'logitech-pebble-keys-2-k380s',
+        reviews: {
+      rating: 4.3,
+      count: 980,
+      themes: ['kompaktná', 'tichá', 'cena'],
+    },
+alzaPath: 'logitech-pebble-keys-2-k380s',
   },
   {
     id: 'ms-logitech-mx-master3s',
@@ -394,7 +540,12 @@ export const CATALOG: Product[] = [
       'MX Master 3S je ergonomická myš pre produktivitu: MagSpeed koliesko, tiché kliky, 8K senzor na skle. Ideal home-office companion k MX Keys. Nabíjanie USB-C, multi-device.',
     specs: ['MagSpeed', 'tiché kliky', '8000 DPI', 'USB-C', 'multi-device'],
     tags: ['office', 'ergonomia', 'bezdratove', 'home-office'],
-    alzaPath: 'logitech-mx-master-3s',
+        reviews: {
+      rating: 4.8,
+      count: 5120,
+      themes: ['ergonómia', 'MagSpeed scroll', 'tiché kliky'],
+    },
+alzaPath: 'logitech-mx-master-3s',
   },
   {
     id: 'ms-logitech-g502',
@@ -407,7 +558,12 @@ export const CATALOG: Product[] = [
       'G502 X je evolúcia legendárnej hernej myši: ľahší chassis, HERO senzor, programovateľné tlačidlá. Vhodná na FPS/MMO aj bežnú prácu, ak chceš viac tlačidiel.',
     specs: ['HERO senzor', 'programovateľné tlačidlá', 'ľahší dizajn'],
     tags: ['gaming', 'hry', 'office', 'budget'],
-    alzaPath: 'logitech-g502-x',
+        reviews: {
+      rating: 4.6,
+      count: 2870,
+      themes: ['programovateľné tlačidlá', 'senzor', 'hry aj práca'],
+    },
+alzaPath: 'logitech-g502-x',
   },
   {
     id: 'ms-razer-deathadder',
@@ -420,7 +576,12 @@ export const CATALOG: Product[] = [
       'DeathAdder V3 je ľahká ergonomická herná myš s vysokým senzorom a spoľahlivými spínačmi. Oblúbená na FPS; pohodlná aj na dlhšie session.',
     specs: ['Focus Pro 30K', 'ľahký chassis', 'optické spínače'],
     tags: ['gaming', 'hry', 'ergonomia', 'budget'],
-    alzaPath: 'razer-deathadder-v3',
+        reviews: {
+      rating: 4.6,
+      count: 1640,
+      themes: ['ľahký chassis', 'FPS komfort', 'spoľahlivé spínače'],
+    },
+alzaPath: 'razer-deathadder-v3',
   },
   {
     id: 'ms-microsoft-sculpt',
@@ -433,7 +594,12 @@ export const CATALOG: Product[] = [
       'Sculpt Ergonomic je stavaná na celodennú prácu: prirodzený úchop, Windows gesture tlačidlo a spoľahlivé 2.4 GHz. Dobrá lacnejšia ergonomická voľba než MX Master.',
     specs: ['ergonomický tvar', 'Windows gestá', '2.4 GHz'],
     tags: ['office', 'ergonomia', 'home-office', 'budget'],
-    alzaPath: 'microsoft-sculpt-ergonomic-mouse',
+        reviews: {
+      rating: 4.3,
+      count: 720,
+      themes: ['ergonomický úchop', 'office', 'cena'],
+    },
+alzaPath: 'microsoft-sculpt-ergonomic-mouse',
   },
   {
     id: 'ssd-samsung-990',
@@ -446,7 +612,12 @@ export const CATALOG: Product[] = [
       '990 PRO je high-end PCIe 4.0 NVMe disk s vysokými sekvenčnými rýchlosťami a spoľahlivosťou Samsung. Ideálny upgrade staršieho notebooku/PC: rýchlejší boot, hry a práca so súbormi.',
     specs: ['PCIe 4.0 NVMe', '1 TB', 'až ~7450 MB/s čítanie', 'M.2 2280'],
     tags: ['upgrade', 'ulozisko', 'rychly', 'pc'],
-    alzaPath: 'samsung-990-pro-1tb',
+        reviews: {
+      rating: 4.8,
+      count: 4210,
+      themes: ['rýchlosť', 'spoľahlivosť', 'upgrade notebooku'],
+    },
+alzaPath: 'samsung-990-pro-1tb',
   },
   {
     id: 'ssd-sandisk-extreme1',
@@ -459,7 +630,12 @@ export const CATALOG: Product[] = [
       'Prenosný Extreme SSD je odolný, kompaktný a rýchly cez USB-C. Vhodný na cestovanie, školské projekty a video zálohy. Rýchlejší a odolnejší než klasický HDD.',
     specs: ['1 TB', 'USB-C', 'odolný', 'prenosný'],
     tags: ['ulozisko', 'prenosn', 'student', 'cestovanie', 'budget'],
-    alzaPath: 'sandisk-extreme-portable-ssd-1tb',
+        reviews: {
+      rating: 4.6,
+      count: 2560,
+      themes: ['prenosnosť', 'odolnosť', 'rýchly USB-C'],
+    },
+alzaPath: 'sandisk-extreme-portable-ssd-1tb',
   },
   {
     id: 'ssd-wd-sn850x',
@@ -472,7 +648,12 @@ export const CATALOG: Product[] = [
       'SN850X je PCIe 4.0 disk obľúbený medzi hráčmi: rýchle načítanie hier a nižšie stutter. Solidná alternativa k Samsung 990 PRO pri podobnej cene.',
     specs: ['PCIe 4.0', '1 TB', 'až ~7300 MB/s', 'M.2 2280'],
     tags: ['upgrade', 'ulozisko', 'rychly', 'gaming', 'hry'],
-    alzaPath: 'wd-black-sn850x-1tb',
+        reviews: {
+      rating: 4.7,
+      count: 1980,
+      themes: ['herné načítanie', 'PCIe 4.0', 'stabilita'],
+    },
+alzaPath: 'wd-black-sn850x-1tb',
   },
   {
     id: 'ssd-crucial-t500',
@@ -485,7 +666,12 @@ export const CATALOG: Product[] = [
       'T500 2 TB dáva priestor na projekty, hry aj 4K materiál. PCIe 4.0 rýchlosti a férová cena za TB — vhodný upgrade, ak 1 TB už nestačí.',
     specs: ['2 TB', 'PCIe 4.0', 'M.2 2280', 'DRAM'],
     tags: ['upgrade', 'ulozisko', 'rychly', 'video'],
-    alzaPath: 'crucial-t500-2tb',
+        reviews: {
+      rating: 4.6,
+      count: 870,
+      themes: ['2 TB kapacita', 'cena za TB', 'video projekty'],
+    },
+alzaPath: 'crucial-t500-2tb',
   },
   {
     id: 'tv-lg-oled55',
@@ -498,7 +684,12 @@ export const CATALOG: Product[] = [
       'LG C4 OLED prináša dokonalú čiernu, webOS a herné funkcie (VRR, ALLM). 55" je sweet spot do obývačky. Prémiová cena za špičkový obraz — ak sleduješ veľa filmov v tme, OLED vyhráva.',
     specs: ['55" OLED 4K', 'webOS', 'HDMI 2.1', 'VRR / ALLM'],
     tags: ['filmy', 'oled', '4k', 'smart-tv', 'sport'],
-    alzaPath: 'lg-oled55-c4',
+        reviews: {
+      rating: 4.8,
+      count: 3120,
+      themes: ['kontrast OLED', 'filmy v tme', 'herné HDMI 2.1'],
+    },
+alzaPath: 'lg-oled55-c4',
   },
   {
     id: 'tv-samsung-qled55',
@@ -511,7 +702,12 @@ export const CATALOG: Product[] = [
       'Q60D QLED je jasný televízor vhodný do denného svetla, Tizen smart TV a solid 4K upscaling. Nie OLED kontrast, ale lepšia cena a vysoký jas. Dobrá voľba do 700 € triedy.',
     specs: ['55" QLED 4K', 'Tizen', 'HDR', 'smart TV'],
     tags: ['filmy', 'qled', '4k', 'smart-tv', 'budget'],
-    alzaPath: 'samsung-qled-55-q60d',
+        reviews: {
+      rating: 4.5,
+      count: 1890,
+      themes: ['jas do denného svetla', 'Tizen', 'cena vs OLED'],
+    },
+alzaPath: 'samsung-qled-55-q60d',
   },
   {
     id: 'tv-tcl-55c655',
@@ -524,7 +720,12 @@ export const CATALOG: Product[] = [
       'C655 prináša QLED jas, Google TV a slušný zvuk za cenu pod prémiové značky. Ideálny lacný smart TV do 500 €, ak nepotrebuješ OLED kontrast.',
     specs: ['55" QLED 4K', 'Google TV', 'HDR10+', 'Dolby Audio'],
     tags: ['filmy', 'qled', '4k', 'smart-tv', 'budget'],
-    alzaPath: 'tcl-55c655-qled',
+        reviews: {
+      rating: 4.3,
+      count: 1450,
+      themes: ['Google TV', 'QLED jas', 'budget 55"'],
+    },
+alzaPath: 'tcl-55c655-qled',
   },
   {
     id: 'tv-sony-bravia55',
@@ -537,7 +738,12 @@ export const CATALOG: Product[] = [
       'Sony X90L je silný na šport a jasné miestnosti: dobrý motion processing, Google TV a solidný zvuk. Alternatíva k OLED, ak sleduješ veľa cez deň.',
     specs: ['55" 4K', 'Cognitive Processor XR', 'Google TV', 'HDMI 2.1'],
     tags: ['filmy', 'sport', '4k', 'smart-tv'],
-    alzaPath: 'sony-bravia-xr55x90l',
+        reviews: {
+      rating: 4.7,
+      count: 980,
+      themes: ['motion na šport', 'obraz cez deň', 'zvuk'],
+    },
+alzaPath: 'sony-bravia-xr55x90l',
   },
   {
     id: 'gc-ps5-slim',
@@ -550,7 +756,12 @@ export const CATALOG: Product[] = [
       'PS5 Slim je menšia verzia PlayStation 5 s podporou 4K/60+ hier, DualSense ovládačom a rýchlym SSD. Najlepšia voľba, ak chceš exkluzivity Sony a veľký katalóg. Over dostupnosť disku (Digital vs Disc).',
     specs: ['4K gaming', 'SSD', 'DualSense', 'slim chassis'],
     tags: ['gaming', 'hry', 'konzola', 'ps5'],
-    alzaPath: 'playstation-5-slim',
+        reviews: {
+      rating: 4.8,
+      count: 5640,
+      themes: ['exkluzivity Sony', 'rýchle SSD', 'DualSense'],
+    },
+alzaPath: 'playstation-5-slim',
   },
   {
     id: 'gc-switch-oled',
@@ -563,7 +774,12 @@ export const CATALOG: Product[] = [
       'Switch OLED má farebnejší 7" OLED displej, vylepšený stojan a rovnakú knižnicu Nintendo hier (Mario, Zelda, Animal Crossing). Ideálny na cestovanie a rodinné hranie; nie je to 4K výkon PS5.',
     specs: ['7" OLED', 'handheld + dock', 'Joy-Con', 'rodinné hry'],
     tags: ['gaming', 'hry', 'prenosna', 'rodina', 'cestovanie'],
-    alzaPath: 'nintendo-switch-oled',
+        reviews: {
+      rating: 4.7,
+      count: 4890,
+      themes: ['OLED displej', 'hry na cestách', 'rodinné tituly'],
+    },
+alzaPath: 'nintendo-switch-oled',
   },
   {
     id: 'gc-xbox-series-s',
@@ -576,7 +792,12 @@ export const CATALOG: Product[] = [
       'Series S je digitálna, menšia a lacnejšia cesta do current-gen Xbox knižnice a Game Pass. Nižšie rozlíšenie než Series X/PS5, ale výborná hodnota na 1080p/1440p TV.',
     specs: ['512 GB SSD', 'digitálna', 'Game Pass', '1440p cieľ'],
     tags: ['gaming', 'hry', 'konzola', 'budget'],
-    alzaPath: 'xbox-series-s-512gb',
+        reviews: {
+      rating: 4.5,
+      count: 3210,
+      themes: ['Game Pass hodnota', 'kompaktná', 'cena'],
+    },
+alzaPath: 'xbox-series-s-512gb',
   },
   {
     id: 'gc-steam-deck-oled',
@@ -589,7 +810,12 @@ export const CATALOG: Product[] = [
       'Steam Deck OLED je prenosný PC handheld s farebnejším OLED panelom a prístupom k Steam hrám. Ideálny, ak už máš PC knižnicu a chceš hrať na cestách.',
     specs: ['OLED', '512 GB', 'SteamOS', 'handheld'],
     tags: ['gaming', 'hry', 'prenosna', 'cestovanie', 'pc'],
-    alzaPath: 'steam-deck-oled-512gb',
+        reviews: {
+      rating: 4.7,
+      count: 2760,
+      themes: ['Steam knižnica', 'OLED', 'handheld PC'],
+    },
+alzaPath: 'steam-deck-oled-512gb',
   },
 ]
 

@@ -292,6 +292,11 @@ export function ChatPanel({
                           <strong className="rec-name">{rec.product.name}</strong>
                           <span className="rec-price">
                             {formatPrice(rec.product.priceEur)}
+                            <span className="rec-rating">
+                              {' '}
+                              · {rec.product.reviews.rating.toFixed(1).replace('.', ',')} ★ (
+                              {new Intl.NumberFormat('sk-SK').format(rec.product.reviews.count)})
+                            </span>
                           </span>
                           <p className="rec-reason">{rec.reason}</p>
                           <p className="rec-desc">{rec.product.description}</p>

@@ -454,8 +454,43 @@ function clarifyingReply(intent: ParsedIntent): string {
   return 'Povedz mi kategóriu a rozpočet — napr. „notebook do 800 € na školu“ alebo „slúchadlá s ANC do 150 €“. Bez toho by som tipoval naslepo.'
 }
 
+function formatRatingSk(rating: number): string {
+  return rating.toFixed(1).replace('.', ',')
+}
+
+function formatReviewCountSk(count: number): string {
+  return new Intl.NumberFormat('sk-SK').format(count)
+}
+
+/** Themes that overlap the user's use-case / tokens (normalized). */
+function matchingReviewThemes(product: Product, intent: ParsedIntent): string[] {
+  // Skip short needles — avoids `lg`∈`google`, `s` from "S Pen", `2` from "2 TB"
+  const needles = [...intent.tags, ...intent.tokens, ...intent.brands]
+    .map((t) => normalize(t))
+    .filter((t) => t.length >= 3)
+  if (needles.length === 0) return product.reviews.themes.slice(0, 2)
+
+  const hits = product.reviews.themes.filter((theme) => {
+    const n = normalize(theme)
+    const words = n.split(/[^a-z0-9]+/).filter((w) => w.length >= 3)
+    return needles.some(
+      (needle) =>
+        n.includes(needle) || words.some((w) => w === needle || w.startsWith(needle)),
+    )
+  })
+  if (hits.length > 0) return hits.slice(0, 2)
+  return product.reviews.themes.slice(0, 2)
+}
+
+function reviewLead(product: Product, intent: ParsedIntent): string {
+  const { rating, count } = product.reviews
+  const themes = matchingReviewThemes(product, intent)
+  const themeBit = themes.length > 0 ? ` — ${themes.join(', ')}` : ''
+  return `Na základe recenzií (${formatRatingSk(rating)} ★ / ${formatReviewCountSk(count)})${themeBit}`
+}
+
 function reasonFor(product: Product, intent: ParsedIntent): string {
-  const parts: string[] = []
+  const parts: string[] = [reviewLead(product, intent)]
   if (intent.categories.includes(product.category)) {
     parts.push(`sedí kategória ${CATEGORY_LABELS[product.category]}`)
   }
@@ -504,10 +539,6 @@ function reasonFor(product: Product, intent: ParsedIntent): string {
     intent.tokens.some((t) => normalize(s).includes(t) && t.length >= 3),
   )
   if (specHit) parts.push(`parameter „${specHit}“`)
-  if (parts.length === 0) {
-    return product.summary
-  }
-  parts.push(product.summary.charAt(0).toLowerCase() + product.summary.slice(1))
   return parts.join(' — ')
 }
 
@@ -588,6 +619,23 @@ function scoreProduct(product: Product, intent: ParsedIntent): number {
 
   score += textOverlapScore(product, intent.tokens)
 
+  // Review signals (mock catalog) — prefer higher rated / more reviewed tips
+  const { rating, count, themes } = product.reviews
+  score += Math.round((rating - 4) * 18) // ~0 at 4.0, +14 at 4.8
+  if (count >= 3000) score += 8
+  else if (count >= 1500) score += 5
+  else if (count >= 800) score += 3
+  else if (count < 400) score -= 2
+
+  const themeHay = normalize(themes.join(' '))
+  for (const tag of intent.tags) {
+    const nTag = normalize(tag)
+    if (nTag.length >= 3 && themeHay.includes(nTag)) score += 6
+  }
+  for (const token of intent.tokens) {
+    if (token.length >= 4 && themeHay.includes(token)) score += 3
+  }
+
   return score
 }
 
@@ -637,14 +685,15 @@ function buildRecommendText(intent: ParsedIntent, recs: Recommendation[]): strin
   const useBit = useBits.length ? ` (${useBits.join(', ')})` : ''
 
   const top = recs[0]
+  const topReviews = top.product.reviews
   const compare =
     recs.length > 1
-      ? ` Porovnaj najmä #1 ${top.product.brand} (${top.product.priceEur} €) s ostatnými podľa ceny a parametrov.`
+      ? ` Porovnaj najmä #1 ${top.product.brand} (${top.product.priceEur} €, ${formatRatingSk(topReviews.rating)} ★) s ostatnými podľa ceny, parametrov a recenzií.`
       : ''
 
-  return `Podľa ${catBit}${budgetBit}${useBit} odporúčam ${
+  return `Na základe recenzií a parametrov v katalógu — pre ${catBit}${budgetBit}${useBit} — odporúčam ${
     recs.length === 1 ? 'tento tip' : `tieto tipy (${recs.length})`
-  }. U každého je dôvod, prečo sedí.${compare} Odkazy vedú na Alza.sk (affiliate).`
+  }. U každého je hodnotenie a dôvod, prečo sedí.${compare} Odkazy vedú na Alza.sk (affiliate).`
 }
 
 /**
@@ -674,7 +723,13 @@ export function adviseUser(
       affiliateUrl: buildAffiliateUrl(product.alzaPath),
     }))
     .filter((r) => r.score >= MIN_RECOMMEND_SCORE)
-    .sort((a, b) => b.score - a.score || a.product.priceEur - b.product.priceEur)
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        b.product.reviews.rating - a.product.reviews.rating ||
+        b.product.reviews.count - a.product.reviews.count ||
+        a.product.priceEur - b.product.priceEur,
+    )
 
   let picks = diversify(scored, 3)
 
@@ -773,7 +828,7 @@ export function recommendProducts(userMessage: string, limit = 3): Recommendatio
 }
 
 export function greetingReply(): string {
-  return 'Ahoj! Som VyberAI — pomôžem ti vybrať elektroniku. Napíš napríklad „notebook do 800 € na školu“ alebo „slúchadlá s ANC“.'
+  return 'Ahoj! Som VyberAI — tipujem podľa parametrov a recenzií v katalógu (bez OpenAI kľúča). Napíš napríklad „notebook do 800 € na školu“ alebo „slúchadlá s ANC“.'
 }
 
 export function buildAssistantReply(userMessage: string, recs: Recommendation[]): string {
