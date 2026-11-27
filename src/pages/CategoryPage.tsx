@@ -106,8 +106,6 @@ export function CategoryPage() {
   return (
     <div className="page">
       <div className="atmosphere atmosphere-mock" aria-hidden="true">
-        <div className="atmosphere-orb atmosphere-orb-a" />
-        <div className="atmosphere-orb atmosphere-orb-b" />
         <div className="grain" />
       </div>
 
