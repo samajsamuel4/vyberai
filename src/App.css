@@ -474,6 +474,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+.rec-rating {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.88em;
+}
+
 .rec-reason {
   margin: 0.28rem 0 0 !important;
   color: var(--muted);

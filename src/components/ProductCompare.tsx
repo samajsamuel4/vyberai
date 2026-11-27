@@ -77,6 +77,15 @@ export function ProductCompare({ recommendations }: Props) {
               ))}
             </tr>
             <tr>
+              <th scope="row">Recenzie</th>
+              {cols.map((rec) => (
+                <td key={`${rec.product.id}-reviews`}>
+                  {rec.product.reviews.rating.toFixed(1).replace('.', ',')} ★ ·{' '}
+                  {new Intl.NumberFormat('sk-SK').format(rec.product.reviews.count)}
+                </td>
+              ))}
+            </tr>
+            <tr>
               <th scope="row">Parametre</th>
               {cols.map((rec) => (
                 <td key={`${rec.product.id}-specs`} className="compare-specs">

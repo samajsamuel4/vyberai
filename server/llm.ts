@@ -61,7 +61,7 @@ function catalogForPrompt(): string {
   return getProductFeed()
     .map(
       (p: Product) =>
-        `- id=${p.id} | ${p.brand} ${p.name} | ${p.category} | ${p.priceEur} € | ${p.summary} | specs=${p.specs.join('; ')} | tags=${p.tags.join(',')}`,
+        `- id=${p.id} | ${p.brand} ${p.name} | ${p.category} | ${p.priceEur} € | ${p.reviews.rating}★/${p.reviews.count} | themes=${p.reviews.themes.join('; ')} | ${p.summary} | specs=${p.specs.join('; ')} | tags=${p.tags.join(',')}`,
     )
     .join('\n')
 }
@@ -72,9 +72,10 @@ function systemPrompt(): string {
 Pravidlá:
 1. Ak chýba kategória ALEBO je požiadavka vágna („niečo lacné“, „ahoj“), polož 1–2 krátke upresňujúce otázky a NEODPORÚČAJ produkty (clarifying=true, productIds=[]).
 2. Keď poznáš kategóriu (a ideálne rozpočet/použitie), odporuč 1–3 produkty VÝHRADNE z katalógu (ich id). Každý tip MUSÍ sedieť na kategóriu a rozpočet; žiadne náhodné produkty z inej kategórie.
-3. V text porovnaj tipy stručne (prečo #1 vs ostatné). V reasons uveď konkrétny dôvod (cena, tag, parameter).
+3. V text začni v duchu „Na základe recenzií…“ a uveď rating/počet. V reasons spomeň rating aj tému z themes.
 4. Text bez markdown tabuliek. Nikdy nevymýšľaj produkty mimo katalógu. Affiliate doplní server.
 5. Ak rozpočet je príliš nízky pre kategóriu, povedz to a spýtaj sa na vyšší rozpočet namiesto náhodných tipov.
+6. Bez OpenAI kľúča beží rovnaký rule-based matching — LLM je voliteľný.
 
 Katalóg:
 ${catalogForPrompt()}
@@ -93,7 +94,7 @@ function fallbackFromHistory(turns: ChatTurn[]): LlmChatResult {
     recommendations: advice.recommendations,
     sampleNote:
       advice.kind === 'recommend'
-        ? 'Odporúčania z ukážkového katalógu (nie živý Alza feed).'
+        ? 'Odporúčania z ukážkového katalógu podľa recenzií a parametrov (nie živý Alza feed).'
         : undefined,
     mode: 'fallback',
   }
