@@ -1,15 +1,17 @@
 :root {
   --font-display: 'Syne', 'Segoe UI', sans-serif;
   --font-body: 'Figtree', 'Segoe UI', sans-serif;
-  --text: #f2f4f6;
-  --muted: #a0a8b0;
-  --accent: #22c8ff;
-  --accent-soft: #7ad8f5;
-  --accent-ink: #061018;
-  --panel: rgba(14, 16, 20, 0.92);
-  --stroke: rgba(242, 244, 246, 0.12);
+  --text: #f4f5f6;
+  --muted: #8a929b;
+  --accent: #5bb0c8;
+  --accent-soft: #8cc5d4;
+  --accent-ink: #061218;
+  --panel: rgba(12, 14, 17, 0.9);
+  --stroke: rgba(244, 245, 246, 0.1);
+  --stage: #08090a;
+  --stage-elevated: #0e1013;
   color: var(--text);
-  background: #050607;
+  background: var(--stage);
   font-family: var(--font-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -31,6 +33,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100svh;
+  background: var(--stage);
 }
 
 #root {
